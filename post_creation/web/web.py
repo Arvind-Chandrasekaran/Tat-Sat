@@ -1,0 +1,31 @@
+import uvicorn
+from fastapi import FastAPI,APIRouter
+
+router = APIRouter()
+
+@router.get("/post/media")
+async def post_media():
+    
+    # jwt token validation 
+
+    # create media object urls for return 
+
+
+
+
+@router.post("/post")
+async def post():
+
+    # jwt token validation 
+
+    # save the post to the database
+
+
+
+
+
+if __name__ == "__main__":
+    app = FastAPI()
+    app.include_router(router)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+
