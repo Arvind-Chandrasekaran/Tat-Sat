@@ -7,7 +7,6 @@ router = APIRouter()
 async def post_media():
     
     # jwt token validation 
-
     # create media object urls for return 
 
 
