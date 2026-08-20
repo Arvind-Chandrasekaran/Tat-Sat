@@ -1,14 +1,20 @@
 import uvicorn
-from fastapi import FastAPI,APIRouter
+from fastapi import FastAPI, APIRouter, Request 
 
 router = APIRouter()
 
 @router.get("/post/media")
-async def post_media():
+async def post_media(request : Request):
+
+    authorization_header = request.headers.get("Authorization")
     
+
+
     # jwt token validation 
     # create media object urls for return 
-
+    return {
+        "message": "post_media endpoint works"
+    }
 
 
 
@@ -19,6 +25,9 @@ async def post():
 
     # save the post to the database
 
+    return {
+        "message": "post endpoint works"
+    }
 
 
 
