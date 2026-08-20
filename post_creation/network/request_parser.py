@@ -1,8 +1,9 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 
 
 
 def get_jwt_token(request: Request) -> str:
+    
     """
     Extract the JWT from the Authorization header.
 
