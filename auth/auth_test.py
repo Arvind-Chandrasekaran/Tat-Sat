@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-
 from supabase import create_client, Client
 
 load_dotenv()  # reads variables from a .env file and sets them in os.environ

@@ -8,15 +8,13 @@ router = APIRouter()
 async def post_media(request : Request):
 
 
-    # AuthN - jwt token verify 
+    # AuthN & AuthZ  
     request_parser = RequestParser(request)
     jwt_token = request_parser.get_jwt
     jwt_manager = JWTManager(jwt_token)
 
     return { "message" : "Authentication Successful" }
     
-
-
 
 
 @router.post("/post")

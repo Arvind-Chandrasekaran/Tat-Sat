@@ -15,21 +15,21 @@ class JWTManager:
 
     def __init__(self, jwt_token : str) -> None:
 
-        self._jwt_token = jwt_token
+        self._jwt_token : str = jwt_token
 
-        supabase_project_id = os.environ["SUPABASE_PROJECT_ID"] 
-        self._supabase_project_id = supabase_project_id
+        supabase_project_id : str = os.environ["SUPABASE_PROJECT_ID"] 
+        self._supabase_project_id : str = supabase_project_id
         
-        self._jwks_url = f"https://{supabase_project_id}.supabase.co/auth/v1/.well-known/jwks.json"   # endpoint for public key
-        self._jwks_client = PyJWKClient(self._jwks_url)
+        self._jwks_url : str = f"https://{supabase_project_id}.supabase.co/auth/v1/.well-known/jwks.json"   # endpoint for public key
+        self._jwks_client : str = PyJWKClient(self._jwks_url)
 
         # decryption algorithm - fixed can be seen in the metadat of jwks response
-        self._algorithms = ["ES256"]
+        self._algorithms : list[str]= ["ES256"]
 
         
         # claims needed for authN    
-        self._jwt_issuer = f"https://{supabase_project_id}.supabase.co/auth/v1"
-        self._jwt_audience = "authenticated"
+        self._jwt_issuer : str = f"https://{supabase_project_id}.supabase.co/auth/v1"
+        self._jwt_audience : str = "authenticated"
 
         self._verify()
     

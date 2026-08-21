@@ -13,7 +13,6 @@ url: str = os.environ["SUPABASE_URL"]
 key: str = os.environ["SUPABASE_KEY"]
 client : Client = create_client(url, key)
 
- 
 login_test_user_email = os.environ["LOGIN_TEST_USER_EMAIL"]
 login_test_user_password = os.environ["LOGIN_TEST_USER_PASSWORD"]
 
@@ -43,6 +42,7 @@ def test_valid_token() -> None:
   assert response.status_code == 200
 
 
+
 def test_invalid_token() -> None:
   access_token_false = "1232121"  
 
@@ -52,6 +52,7 @@ def test_invalid_token() -> None:
         "Authorization": f"Bearer {access_token_false}"
     }
   )
+
 
 
 def test_missing_token() -> None:
@@ -64,6 +65,7 @@ def test_missing_token() -> None:
 test_valid_token()
 test_invalid_token()
 test_missing_token()
+
 
 print("post/media - passed")
 
