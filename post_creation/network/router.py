@@ -1,24 +1,24 @@
 from fastapi import APIRouter, Request 
-from request_parser import RequestParser
-
+from network.request_parser import RequestParser
+from security.jwt_manager import JWTManager
 
 router = APIRouter()
 
 @router.get("/post/media")
 async def post_media(request : Request):
 
+    jwt_manager = JWTManager()
+
 
     # jwt token validation 
     request_parser = RequestParser(request)
-    jwt_token = request_parser.get_jwt_token(request)
+    jwt_token = request_parser.get_jwt()
+    
 
 
 
 
-    # create media object urls for return 
-    return {
-        "message": "post_media endpoint works"
-    }
+
 
 
 

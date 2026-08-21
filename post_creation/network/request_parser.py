@@ -1,13 +1,13 @@
 from fastapi import Request, HTTPException
 
-class JWTParser:
+class RequestParser:
 
     def __init__(self, request: Request) -> None:
         self._request = request
-        self._jwt_token = self._get_jwt_token()
+        self._jwt_token = self._get_jwt()
 
 
-    def _get_jwt_token(self) -> str:
+    def _get_jwt(self) -> str:
         
         """
         Extract the JWT from the Authorization header.
@@ -36,6 +36,10 @@ class JWTParser:
 
         return token
 
+
     @property
-    def get_jwt_token(self, )
+    def get_jwt(self):
+        return self._jwt_token
+
+
 
