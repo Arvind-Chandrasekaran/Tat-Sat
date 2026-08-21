@@ -11,14 +11,17 @@ async def post_media(request : Request):
     # AuthN & AuthZ  
     request_parser = RequestParser(request)
     jwt_token = request_parser.get_jwt
-    jwt_manager = JWTManager(jwt_token)
 
+    jwt_manager = JWTManager(jwt_token)
+    
+
+    
     return { "message" : "Authentication Successful" }
     
 
 
 @router.post("/post")
-async def post():
+async def post(request : Request):
 
     # jwt token validation 
 

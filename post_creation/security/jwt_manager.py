@@ -10,7 +10,6 @@ load_dotenv()  # for local loading of env variables. Can be safely ignored for p
 
 
 
-
 class JWTManager:
 
     def __init__(self, jwt_token : str) -> None:
@@ -62,6 +61,9 @@ class JWTManager:
             )
 
 
+    @property
+    def get_user_id(self):
+        pass
 
     
 
