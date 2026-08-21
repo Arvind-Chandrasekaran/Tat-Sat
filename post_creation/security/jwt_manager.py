@@ -24,7 +24,7 @@ class JWTManager:
         self._jwks_client = PyJWKClient(self._jwks_url)
 
         # decryption algorithm - fixed can be seen in the metadat of jwks response
-        self._algorithm = ["ES256"]
+        self._algorithms = ["ES256"]
 
         
         # claims needed for authN    
@@ -44,7 +44,7 @@ class JWTManager:
             self._payload = jwt.decode(
                 self._jwt_token,
                 signing_key.key,
-                algorithms=self._algorithm,
+                algorithms=self._algorithms,
                 issuer=self._jwt_issuer,
                 audience=self._jwt_audience,
             )
