@@ -7,8 +7,6 @@ router = APIRouter()
 @router.get("/post/media")
 async def post_media(request : Request):
 
-    jwt_manager = JWTManager()
-
 
     # jwt token validation 
     request_parser = RequestParser(request)
