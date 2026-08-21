@@ -1,30 +1,41 @@
 from fastapi import Request, HTTPException
 
+class JWTParser:
+
+    def __init__(self, request: Request) -> None:
+        self._request = request
+        self._jwt_token = self._get_jwt_token()
 
 
-def get_jwt_token(request: Request) -> str:
-    
-    """
-    Extract the JWT from the Authorization header.
+    def _get_jwt_token(self) -> str:
+        
+        """
+        Extract the JWT from the Authorization header.
 
-    Expected format:
-        Authorization: Bearer <JWT>
-    """
+        Expected format:
+            Authorization: Bearer <JWT>
+        """
 
-    authorization = request.headers.get("Authorization")
+        request = self._request
 
-    if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail="Missing Authorization header",
-        )
+        authorization = request.headers.get("Authorization")
 
-    scheme, separator, token = authorization.partition(" ")
+        if not authorization:
+            raise HTTPException(
+                status_code=401,
+                detail="Missing Authorization header",
+            )
 
-    if scheme.lower() != "bearer" or not separator or not token:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid Authorization header",
-        )
+        scheme, separator, token = authorization.partition(" ")
 
-    return token
+        if scheme.lower() != "bearer" or not separator or not token:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid Authorization header",
+            )
+
+        return token
+
+    @property
+    def get_jwt_token(self, )
+
