@@ -48,7 +48,7 @@ async def post_media(request : Request):
 
     # create signed upload url for return 
     user_id = jwt_manager.user_id
-    signed_upload_urls = object_storage.create_signed_url_upload(user_id)
+    signed_upload_urls = await object_storage.create_signed_url_upload(user_id)
 
 
     # responds with 200 - ok message

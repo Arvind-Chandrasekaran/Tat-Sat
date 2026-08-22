@@ -10,21 +10,27 @@ load_dotenv()  # for local loading of env variables. Can be safely ignored for p
 
 
 
+
+# shared instance across all JWTManager instances 
+jwks_url : str = os.environ["SUPABASE_JWKS_URL"]   # endpoint for public key. Since it is public, it has no protection
+jwks_client = PyJWKClient(jwks_url)
+
+
+
+
 class JWTManager:
 
     def __init__(self, jwt_token : str) -> None:
+        
+        self._jwks_client = jwks_client
 
         self._jwt_token = jwt_token
 
         supabase_project_id = os.environ["SUPABASE_PROJECT_ID"] 
         self._supabase_project_id = supabase_project_id
         
-        self._jwks_url : str = os.environ["SUPABASE_JWKS_URL"]   # endpoint for public key. Since it is public, it has no protection
-        self._jwks_client = PyJWKClient(self._jwks_url)
-
-        # decryption algorithm - fixed can be seen in the metadat of jwks response
+        # can be seen the metadata of public singing key
         self._algorithms : list[str]= ["ES256"]
-
         
         # claims needed for authN    
         self._jwt_issuer : str = f"https://{supabase_project_id}.supabase.co/auth/v1"
