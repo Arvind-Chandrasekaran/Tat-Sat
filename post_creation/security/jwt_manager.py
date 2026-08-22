@@ -19,7 +19,7 @@ class JWTManager:
         supabase_project_id : str = os.environ["SUPABASE_PROJECT_ID"] 
         self._supabase_project_id : str = supabase_project_id
         
-        self._jwks_url : str = f"https://{supabase_project_id}.supabase.co/auth/v1/.well-known/jwks.json"   # endpoint for public key
+        self._jwks_url : str = os.environ["SUPABASE_JWKS_URL"]   # endpoint for public key. Since it is public, it has no protection
         self._jwks_client : str = PyJWKClient(self._jwks_url)
 
         # decryption algorithm - fixed can be seen in the metadat of jwks response

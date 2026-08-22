@@ -10,7 +10,7 @@ load_dotenv()  # reads variables from a .env file and sets them in os.environ
 
 # Create JWT 
 url: str = os.environ["SUPABASE_URL"]
-key: str = os.environ["SUPABASE_KEY"]
+key: str = os.environ["SUPABASE_PUBLISHABLE_KEY"]
 client : Client = create_client(url, key)
 
 login_test_user_email = os.environ["LOGIN_TEST_USER_EMAIL"]
