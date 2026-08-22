@@ -1,5 +1,5 @@
 import uuid
-from post_creation.domain.supabase_service_client import supabase_service_client
+from domain.supabase_service_client import supabase_service_client
 
 
 class ObjectStorage:
@@ -28,7 +28,7 @@ class ObjectStorage:
 
                 return {
                         "media_id": media_id,
-                        "storage_location": storage_location,
+                        "path": storage_location,  # storage location accoridng to the terms of supabase for client to understand
                         "signed_url": response["signedUrl"],
                         "token": response["token"],
                 }
@@ -54,9 +54,9 @@ class ObjectStorage:
 
 
 
+# shared instance accross route handlers - stateless 
+object_storage = ObjectStorage()        
 
-        
-        
 
 
         

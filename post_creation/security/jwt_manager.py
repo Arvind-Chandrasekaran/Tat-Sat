@@ -14,13 +14,13 @@ class JWTManager:
 
     def __init__(self, jwt_token : str) -> None:
 
-        self._jwt_token : str = jwt_token
+        self._jwt_token = jwt_token
 
-        supabase_project_id : str = os.environ["SUPABASE_PROJECT_ID"] 
-        self._supabase_project_id : str = supabase_project_id
+        supabase_project_id = os.environ["SUPABASE_PROJECT_ID"] 
+        self._supabase_project_id = supabase_project_id
         
         self._jwks_url : str = os.environ["SUPABASE_JWKS_URL"]   # endpoint for public key. Since it is public, it has no protection
-        self._jwks_client : str = PyJWKClient(self._jwks_url)
+        self._jwks_client = PyJWKClient(self._jwks_url)
 
         # decryption algorithm - fixed can be seen in the metadat of jwks response
         self._algorithms : list[str]= ["ES256"]
@@ -31,6 +31,10 @@ class JWTManager:
         self._jwt_audience : str = "authenticated"
 
         self._verify()
+        # + saves the self._payload
+
+        self._get_user_id()
+        # save the self._user_id
     
 
 
@@ -61,9 +65,23 @@ class JWTManager:
             )
 
 
+    def _get_user_id(self):
+
+        user_id = self._payload.get("sub")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="JWT does not contain a user ID",
+            )
+
+        self._user_id = user_id
+
+
+
     @property
-    def get_user_id(self):
-        pass
+    def user_id(self):
+        return self._user_id
 
     
 
