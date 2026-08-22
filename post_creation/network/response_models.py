@@ -1,6 +1,14 @@
+"""
+Files response schema/model or format in which responses are given by each end-point
+
+"""
+
+
 from pydantic import BaseModel
 
 
+
+# post/media
 
 class SignedUploadURL(BaseModel):
     media_id: str
