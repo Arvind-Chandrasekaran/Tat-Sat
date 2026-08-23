@@ -25,9 +25,6 @@ login_response = client.auth.sign_in_with_password(user)
 access_token = login_response.session.access_token
 
 
-
-
-
 # /post/media
 
 def test_valid_token() -> None:
@@ -40,7 +37,7 @@ def test_valid_token() -> None:
     }
   )
 
-
+  print(response.text)
   assert response.status_code == 200
 
 

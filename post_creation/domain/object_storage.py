@@ -7,7 +7,7 @@ class ObjectStorage:
                 self._supabase_service_client = supabase_service_client
 
 
-        def _create_signed_url_upload(self, user_id):
+        async def _create_signed_url_upload(self, user_id):
                 """
                 Creates one signed upload URL.
 
@@ -20,7 +20,7 @@ class ObjectStorage:
                 media_id = str(uuid.uuid4())
                 storage_location = f"{media_id}/{user_id}"
 
-                response = (
+                response = await (
                         ssc.storage
                         .from_("post_media")
                         .create_signed_upload_url(storage_location)
@@ -34,7 +34,7 @@ class ObjectStorage:
                 }
 
 
-        def create_signed_url_upload(self, user_id):
+        async def create_signed_url_upload(self, user_id):
                 """
                 Creates up to 4 signed upload URLs.
 
@@ -46,9 +46,10 @@ class ObjectStorage:
                 create_signed_upload_urls = []
 
                 for _ in range(MAX_FILES):
-                        create_signed_upload_urls.append(
-                        self._create_signed_url_upload(user_id)
-                        )
+
+                        signed_url = await self._create_signed_url_upload(user_id)
+
+                        create_signed_upload_urls.append(signed_url)
 
                 return create_signed_upload_urls
 

@@ -64,6 +64,7 @@ class JWTManager:
                 detail="JWT has expired",
             )
 
+        # mindful of the iat error. There is start time fo JWT, and the server time can somtimes be behind the the start of iat due to serve having improper clock
         except jwt.InvalidTokenError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
