@@ -37,7 +37,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
     # AuthN & AuthZ  
     # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   #no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
-    jwt_manager = JWTManager(jwt) # will perform authN and authZ
+    jwt_manager = JWTManager(jwt) # will perform authN and authZ   (synchornous it has a api call still left to be synchornous as the value can be cached making it local. It is a very small operation)
 
 
     # create signed upload url for return 
@@ -63,7 +63,34 @@ async def post( request_body : request_models.PostBodySchema,  http_authorizatio
     # create signed upload url for return 
     user_id = jwt_manager.user_id
 
-    # check the media uploads 
+    # check the media uploads
+
+    # 1. Collect all media items present in the request
+    media_slots = [
+        request_body.media_1,
+        request_body.media_2,
+        request_body.media_3,
+        request_body.media_4,
+    ]
+
+    # Filter for files that claim to be uploaded and have a valid file_id
+    files_to_verify = [
+        media.file_id for media in media_slots
+        if media is not None and media.is_uploaded and media.file_id
+    ]
+
+
+    await object_storage.verify_media_files(user_id, files_to_verify)
+
+
+
+        
+
+
+
+
+
+    
 
 
 

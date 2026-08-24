@@ -3,17 +3,21 @@ Files request schema/model or format in which responses are given by each end-po
 """
 
 from pydantic import BaseModel, HttpUrl
+from typing import Optional
 
+class MediaItem(BaseModel):
+    file_id: Optional[str] = None
+    is_uploaded: bool = False
 
 class PostBodySchema(BaseModel):
     text: str
 
-    media_1: str
-    media_2: str
-    media_3: str
-    media_4: str
+    media_1: Optional[MediaItem] = None
+    media_2: Optional[MediaItem] = None
+    media_3: Optional[MediaItem] = None
+    media_4: Optional[MediaItem] = None
 
-    reference_link: HttpUrl   # it check if the value is a valid http(s) url. later can be converted to str
+    reference_url: Optional[HttpUrl] = None
 
-    parent_post_id: str
-    post_topics: list[str]
+    parent_post_id: Optional[str] = None
+    post_topics: list[str] = []

@@ -19,3 +19,4 @@ class SignedUploadURL(BaseModel):
 
 class PostMediaURLs(BaseModel):
     signed_upload_urls: list[SignedUploadURL]
+    

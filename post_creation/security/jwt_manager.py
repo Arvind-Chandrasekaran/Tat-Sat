@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 
 import jwt
 from jwt import PyJWKClient
