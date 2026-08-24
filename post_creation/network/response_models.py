@@ -17,5 +17,5 @@ class SignedUploadURL(BaseModel):
     token: str
 
 
-class PostMedia(BaseModel):
+class PostMediaURLs(BaseModel):
     signed_upload_urls: list[SignedUploadURL]

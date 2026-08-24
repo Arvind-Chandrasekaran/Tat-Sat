@@ -1,10 +1,10 @@
 from fastapi import Request, HTTPException
 
-class RequestParser:
+class RequestHeader:
 
     def __init__(self, request: Request) -> None:
         self._request = request
-        self._jwt_token = self._get_jwt()
+        self._jwt = self._get_jwt()
 
 
     def _get_jwt(self) -> str:
@@ -17,7 +17,7 @@ class RequestParser:
         """
 
         request = self._request
-
+        
         authorization = request.headers.get("Authorization")
 
         if not authorization:
@@ -38,8 +38,31 @@ class RequestParser:
 
 
     @property
-    def get_jwt(self):
-        return self._jwt_token
+    def jwt(self):
+        return self._jwt
 
+
+
+
+class RequestBody:
+
+    async def __init__(self, request : Request):
+
+        self._request = request 
+
+        try:
+            body = await request.json()
+
+        except body.decoder.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid or empty JSON body")
+
+        self._body_validate_parameters()
+
+
+    def _body_validate_parameters(self):
+
+        body = self._body
+
+        
 
 
