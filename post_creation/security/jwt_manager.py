@@ -8,6 +8,8 @@ class JWTManager:
         self._response = claims
         self._user_id = claims.get("sub")
 
+
+    # __init__ can not be async and hence we create another constructor
     @classmethod
     async def create(cls, jwt: str) -> "JWTManager":
 

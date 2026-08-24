@@ -22,7 +22,7 @@ user = {
 
 login_response = client.auth.sign_in_with_password(user)
 access_token = login_response.session.access_token
-
+access_token_expired = "eyJhbGciOiJFUzI1NiIsImtpZCI6ImVhYmY3ZTVkLThjMTQtNDllMS1hMDMyLWNjNDU3ODc4ZTQwNCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2dzYmR3ZGh6cWh2bmt5bG1hc3NyLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxZTE3YTRjOC1lNDAzLTRhODgtOTI2Yi1kOGZjY2JlMWQwYWYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzg3NTg0NjM4LCJpYXQiOjE3ODc1ODEwMzgsImVtYWlsIjoiYXJ2aW5kLmM5NzUxQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWxfdmVyaWZpZWQiOnRydWV9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzg3NTgxMDM4fV0sInNlc3Npb25faWQiOiIwZWU5ZjY1Zi1lNzRlLTRiY2QtODdiZi01Mjc1Yzk3M2Y2ZmUiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.3wm8I26gYdh57E7dow7rg17faCWXfI0OJUzjCa_NeNHJ6PZ371XCTG6rgSw-aURgd7-_z1nbI_bkux1kLAFHMw"
 
 
 
@@ -42,6 +42,8 @@ def test_invalid_token() -> None:
   )
 
 
+  assert response.status_code == 401
+
 
 def test_missing_token() -> None:
   response = requests.get(
@@ -51,9 +53,22 @@ def test_missing_token() -> None:
 
 
 
-def test_valid_token() -> None:
+def test_expired_token() -> None:
 
-  print(access_token)
+  response = requests.get(
+    "http://127.0.0.1:8000/post-media-urls",
+
+    headers={
+        "Authorization": f"Bearer {access_token_expired}"
+    }
+  )
+
+  assert response.status_code == 401
+
+
+
+
+def test_valid_token() -> None:
 
   response = requests.get(
     "http://127.0.0.1:8000/post-media-urls",
@@ -64,6 +79,9 @@ def test_valid_token() -> None:
   )
 
   assert response.status_code == 200
+
+
+
 
 
 
@@ -80,7 +98,7 @@ def test_upload() -> None:
 
   assert response.status_code == 200
 
-"""  signed_upload_urls = response.json()["signed_upload_urls"]
+  signed_upload_urls = response.json()["signed_upload_urls"]
   assert len(signed_upload_urls) >= 2
 
   test_files = [
@@ -105,26 +123,6 @@ def test_upload() -> None:
     assert upload_response.status_code in (200, 201), upload_response.text
     uploaded_media_ids.append(signed_upload["media_id"])
 
-  post_response = requests.post(
-    "http://127.0.0.1:8000/post",
-    headers={
-      "Authorization": f"Bearer {access_token}",
-      "Content-Type": "application/json",
-    },
-    json={
-      "text": "Upload integration test post",
-      "media_1": {"file_id": uploaded_media_ids[0], "is_uploaded": True},
-      "media_2": {"file_id": uploaded_media_ids[1], "is_uploaded": True},
-    },
-    timeout=30,
-  )
-
-  assert post_response.status_code == 200, post_response.text
-
-
-"""    
-
-
 
 
 
@@ -132,6 +130,7 @@ def test_upload() -> None:
 test_invalid_token()
 test_missing_token()
 test_valid_token()
+test_expired_token()
 test_upload()
 
 print("post/media - passed")
