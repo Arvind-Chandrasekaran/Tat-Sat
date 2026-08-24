@@ -1,6 +1,6 @@
 import uuid
 from domain.supabase_service_client import supabase_service_client
-
+import asyncio
 
 class ObjectStorage:
         def __init__(self):
@@ -35,23 +35,16 @@ class ObjectStorage:
 
 
         async def create_signed_url_upload(self, user_id):
-                """
-                Creates up to 4 signed upload URLs.
-
-                Each URL corresponds to a different storage object.
-                """
-
                 MAX_FILES = 4
 
-                create_signed_upload_urls = []
+                tasks = [
+                        self._create_signed_url_upload(user_id)
+                        for _ in range(MAX_FILES)
+                ]
 
-                for _ in range(MAX_FILES):
+                signed_urls = await asyncio.gather(*tasks)
 
-                        signed_url = await self._create_signed_url_upload(user_id)
-
-                        create_signed_upload_urls.append(signed_url)
-
-                return create_signed_upload_urls
+                return signed_urls
 
 
 
