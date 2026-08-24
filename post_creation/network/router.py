@@ -35,7 +35,7 @@ router = APIRouter()
 async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj)):
 
     # AuthN & AuthZ  
-    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   #no need for this, we have the done it using depends 
+    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
     jwt_manager = JWTManager(jwt) # will perform authN and authZ   (synchornous it has a api call still left to be synchornous as the value can be cached making it local. It is a very small operation)
 
@@ -73,6 +73,8 @@ async def post( request_body : request_models.PostBodySchema,  http_authorizatio
         request_body.media_4,
     ]
 
+    print(media_slots)
+
     # Filter for files that claim to be uploaded and have a valid file_id
     files_to_verify = [
         media.file_id for media in media_slots
@@ -80,7 +82,7 @@ async def post( request_body : request_models.PostBodySchema,  http_authorizatio
     ]
 
 
-    await object_storage.verify_media_files(user_id, files_to_verify)
+    # await object_storage.verify_media_files(user_id, files_to_verify)
 
 
 

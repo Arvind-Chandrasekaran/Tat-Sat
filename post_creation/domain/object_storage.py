@@ -50,47 +50,6 @@ class ObjectStorage:
                 return signed_urls
 
 
-        async def _verify_media_files(self, user_id: str, media_ids: list[str] ) -> list[str]:
-                """
-                Checks each media file separately and concurrently.
-
-                Returns the media IDs that do not exist.
-                """
-
-                results = await asyncio.gather(
-                *(
-                        self.media_exists(
-                        user_id=user_id,
-                        media_id=media_id,
-                        )
-                        for media_id in media_ids
-                )
-                )
-
-                return [
-                media_id
-                for media_id, exists in zip(media_ids, results)
-                if not exists
-                ]
-
-
-        async def verify_media_files(self, user_id: str, media_ids: list[str]) -> None:
-                """
-                Verifies all media IDs exist for the user.
-                Raises HTTPException 400 if any files are missing.
-                """
-                missing_files = await self._verify_media_files(user_id, media_ids)
-                
-                if missing_files:
-                        raise HTTPException(
-                                status_code=status.HTTP_400_BAD_REQUEST,
-                                detail={
-                                "error": "MEDIA_NOT_FOUND",
-                                "message": "One or more media files could not be found in storage.",
-                                "missing_media_ids": missing_files,
-                                }
-                        )
-
 
 
 # shared instance accross route handlers - stateless 
