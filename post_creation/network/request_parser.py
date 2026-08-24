@@ -1,68 +1,30 @@
-from fastapi import Request, HTTPException
-
-class RequestHeader:
-
-    def __init__(self, request: Request) -> None:
-        self._request = request
-        self._jwt = self._get_jwt()
+from fastapi.security import HTTPBearer
 
 
-    def _get_jwt(self) -> str:
-        
+class RequestParser:
+    """
+    Contains helper functions to parse the request sent by client. 
+    """
+
+    def authorization_header(self):
         """
-        Extract the JWT from the Authorization header.
-
-        Expected format:
-            Authorization: Bearer <JWT>
+        The authorization header received will be same for all the routes in this end-point.
         """
 
-        request = self._request
-        
-        authorization = request.headers.get("Authorization")
-
-        if not authorization:
-            raise HTTPException(
-                status_code=401,
-                detail="Missing Authorization header",
+        security = HTTPBearer(
+            bearerFormat="JWT",
+            description=(
+            """
+            The client must provide a valid JWT access token in the `Authorization` header.
+            The JWT payload must contain the following 3 claims:
+                iss = f"https://{supabase_project_id}.supabase.co/auth/v1"
+                aud = f"authenticated"
+                sub = f"{user_id}"
+            """
             )
+        )
 
-        scheme, separator, token = authorization.partition(" ")
-
-        if scheme.lower() != "bearer" or not separator or not token:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid Authorization header",
-            )
-
-        return token
+        return security
 
 
-    @property
-    def jwt(self):
-        return self._jwt
-
-
-
-
-class RequestBody:
-
-    async def __init__(self, request : Request):
-
-        self._request = request 
-
-        try:
-            body = await request.json()
-
-        except body.decoder.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid or empty JSON body")
-
-        self._body_validate_parameters()
-
-
-    def _body_validate_parameters(self):
-
-        body = self._body
-
-        
-
-
+request_parser_obj = RequestParser()
