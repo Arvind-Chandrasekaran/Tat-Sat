@@ -12,9 +12,11 @@ class JWTManager:
     async def create(cls, jwt: str) -> "JWTManager":
 
         try:
-            claims = await supabase_service_client.auth.get_claims(jwt)
+            response = await supabase_service_client.auth.get_claims(jwt)
 
-            if not claims or "sub" not in claims:
+            claims = response.get('claims')
+
+            if not response or "sub" not in claims:
                 raise ValueError("Missing 'sub' claim")  # will jump to except
 
             return cls(jwt=jwt, claims=claims)

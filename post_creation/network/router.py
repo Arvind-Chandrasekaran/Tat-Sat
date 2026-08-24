@@ -37,8 +37,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
     # AuthN & AuthZ  
     # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
-    jwt_manager = JWTManager(jwt) # will perform authN and authZ   (synchornous it has a api call still left to be synchornous as the value can be cached making it local. It is a very small operation)
-
+    jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
     # create signed upload url for return 
     user_id = jwt_manager.user_id

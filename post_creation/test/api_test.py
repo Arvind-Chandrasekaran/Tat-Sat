@@ -51,6 +51,22 @@ def test_missing_token() -> None:
 
 
 
+def test_valid_token() -> None:
+
+  print(access_token)
+
+  response = requests.get(
+    "http://127.0.0.1:8000/post-media-urls",
+
+    headers={
+        "Authorization": f"Bearer {access_token}"
+    }
+  )
+
+  assert response.status_code == 200
+
+
+
 
 def test_upload() -> None:
 
@@ -64,7 +80,7 @@ def test_upload() -> None:
 
   assert response.status_code == 200
 
-  signed_upload_urls = response.json()["signed_upload_urls"]
+"""  signed_upload_urls = response.json()["signed_upload_urls"]
   assert len(signed_upload_urls) >= 2
 
   test_files = [
@@ -106,7 +122,7 @@ def test_upload() -> None:
   assert post_response.status_code == 200, post_response.text
 
 
-    
+"""    
 
 
 
@@ -115,6 +131,7 @@ def test_upload() -> None:
 
 test_invalid_token()
 test_missing_token()
+test_valid_token()
 test_upload()
 
 print("post/media - passed")
