@@ -2,7 +2,9 @@ from fastapi.security import HTTPBearer
 
 
 
-http_authorization_header_credentials_obj = HTTPBearer(
+
+
+http_authorization_header_credentials_obj_creator = HTTPBearer(
     bearerFormat="JWT",
     description=(
     """

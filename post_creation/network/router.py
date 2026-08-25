@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from security.jwt_manager import JWTManager
 
 from domain.object_storage import object_storage
+from domain.supabase_service_client import supabase_service_client
 
 import network.request_parser as request_parser
 import network.request_models as request_models
@@ -16,6 +17,7 @@ router = APIRouter()
 
 
 @router.get(
+
     "/post-media-urls",
 
     tags=["Create Signed Upload URLs for Media"],
@@ -25,17 +27,26 @@ router = APIRouter()
     The returned signed URLs should be used by the client to upload the media directly to object storage.
     """,
 
-    response_model= response_models.PostMediaURLs,
+    responses = {
 
-    response_description="List of signed upload urls.",       
+        # automatically adds the 200 return but fastapi wont know the schema of the response needed manually specified
+        200 : {
 
-    status_code=status.HTTP_200_OK
+            "model": response_models.PostMediaURLs,
+            "description": "List of signed upload urls.",       
+        },
+
+        401: {
+            "description": "Invalid Authentication Credentials",
+        }
+    },
+    
    )
 
-async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj)):
+async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj_creator)):
 
     # AuthN & AuthZ  
-    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
+    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
@@ -51,41 +62,76 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
 
 
-@router.post("/post")
-async def post( request_body : request_models.PostBodySchema,  http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj)):
+@router.post(
+
+    "/post",
+
+    tags=["Create a Post."],
+
+    description="""
+    Creates and entry to the post database based on the information provided by a user. 
+    It will verify the information before creating the database entry.
+    """,
+
+    responses = {
+
+        # automatically adds the 200 and 422 
+
+        400: {
+            "description": "Invalid Media ID(s).",
+        }
+
+    },
+
+             )
+async def post( request_body : request_models.Post_RequestBody,  http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj_creator)):
 
     # AuthN & AuthZ  
-    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj.__call__(request)   #no need for this, we have the done it using depends 
+    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
-    jwt_manager = JWTManager(jwt) # will perform authN and authZ
+    jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
-    # create signed upload url for return 
-    user_id = jwt_manager.user_id
 
     # check the media uploads
-
-    # 1. Collect all media items present in the request
-    media_slots = [
-        request_body.media_1,
-        request_body.media_2,
-        request_body.media_3,
-        request_body.media_4,
-    ]
-
-    print(media_slots)
-
-    # Filter for files that claim to be uploaded and have a valid file_id
-    files_to_verify = [
-        media.file_id for media in media_slots
-        if media is not None and media.is_uploaded and media.file_id
-    ]
+    user_id = jwt_manager.user_id
+    await object_storage.media_id_presence_check(request_body.media_ids, user_id)
+    # media uploads verified
 
 
-    # await object_storage.verify_media_files(user_id, files_to_verify)
+    # create post database entry 
 
 
 
-        
+    return {"message" : "Post Created."}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+Key Notes 
+
+Rogue Client Security 
+1 - Malicious file being uplaoded to storage using signed upload url - Proxy Storage and Check magic bytes of the files being uploaded to the storage before approving the post entry in database. 
+2 - Phantom  Posts - Post not uploaded by a client could send the media_id as being uploaded - Check the media_ids sent by client. 
+3 - Orphan Posts - Post could be uploaded to link but not sent back by client with request to /post. This will lead to creation of media that has no post - Storage Garbage Collector. 
+
+"""        
 
 
 

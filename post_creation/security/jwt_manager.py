@@ -5,7 +5,7 @@ from domain.supabase_service_client import supabase_service_client
 class JWTManager:
     def __init__(self, jwt: str, claims: dict):
         self._jwt = jwt
-        self._response = claims
+        self._claims = claims
         self._user_id = claims.get("sub")
 
 
@@ -23,7 +23,7 @@ class JWTManager:
 
             return cls(jwt=jwt, claims=claims)
 
-        except Exception:
+        except:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
@@ -40,7 +40,7 @@ class JWTManager:
 
     @property
     def claims(self) -> dict:
-        return self._response
+        return self._claims
 
 
 
