@@ -11,6 +11,8 @@ BASE_URL = "http://127.0.0.1:8000"
 
 
 
+
+
 @pytest.fixture(scope="session")
 def valid_access_token() -> str:
     """Authenticates once per test session and yields a valid JWT."""
@@ -32,6 +34,11 @@ def auth_headers(valid_access_token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {valid_access_token}"}
 
 
+
+
+
+
+
 # --- Negative Auth Tests ---
 
 
@@ -46,6 +53,8 @@ def auth_headers(valid_access_token: str) -> dict[str, str]:
 def test_unauthorized_requests(headers: dict[str, str]) -> None:
     response = requests.get(f"{BASE_URL}/post-media-urls", headers=headers)
     assert response.status_code == 401
+
+
 
 
 # --- Positive & Functional Tests ---

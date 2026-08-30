@@ -87,7 +87,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 async def post( request_body : request_models.Post_RequestBody,  http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj_creator)):
 
     # AuthN & AuthZ  
-    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
+    # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using Depends 
     jwt = http_authorization_header_credentials_obj.credentials
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
@@ -100,7 +100,10 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     
 
 
-    # create post database entry with status pending
+    # create post database entry (with status pending)
+    
+
+
     
 
 
