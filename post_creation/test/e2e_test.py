@@ -69,6 +69,11 @@ def upload_test_files(signed_uploads: list[dict]) -> list[str]:
     return uploaded_media_ids
 
 
+
+
+
+
+
 # --- Negative Auth Tests ---
 
 
@@ -100,6 +105,12 @@ def test_post_requires_auth(endpoint: str, method: str) -> None:
     }
     response = getattr(requests, method)(f"{BASE_URL}{endpoint}", json=payload, timeout=30)
     assert response.status_code == 401
+
+
+
+
+
+
 
 
 # --- Positive & Functional Tests ---
