@@ -85,7 +85,7 @@ class Database:
 		post_media_rows = [
 			{
 				"post_id": post_id,
-				"media_type": media_type,
+				"media_type": media_type.value,
 				"storage_path": f"{user_id}/{media_id}",
 				"display_order": index+1,
 				"post_media_status": "pending",
