@@ -97,11 +97,16 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
     user_id = jwt_manager.user_id
     await object_storage.media_id_presence_check(request_body.media_ids, user_id)
+
     
 
 
     # create post database entry (with status pending)
-    
+
+
+
+
+           
 
 
     
