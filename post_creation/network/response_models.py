@@ -1,5 +1,5 @@
 """
-Files response schema/model or format in which responses are given by each end-point
+Response schema/model or format in which responses are given by each end-point
 
 """
 

@@ -66,10 +66,10 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
     "/post",
 
-    tags=["Create a Post."],
+    tags=["Create a Post"],
 
     description="""
-    Creates and entry to the post database based on the information provided by a user. 
+    Creates an entry to the posts tabale based on the information provided by a user. 
     It will verify the information before creating the database entry.
     """,
 
@@ -77,7 +77,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
         # automatically adds the 200 and 422 
 
-        400: {
+        400: { 
             "description": "Invalid Media ID(s).",
         }
 
@@ -92,13 +92,26 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
 
-    # check the media uploads
+    # check for phantom media ids
+    # (this can be outsourced to the media verifier, that kind of modularity makes sense, but having it hear reduces false requests before database enrty is made.)
+
     user_id = jwt_manager.user_id
     await object_storage.media_id_presence_check(request_body.media_ids, user_id)
-    # media uploads verified
+    
 
 
-    # create post database entry 
+    # create post database entry with status pending
+    
+
+
+
+
+
+    # send request to media verifier's messaging queue 
+    # once it is implemented
+        
+
+
 
 
 
