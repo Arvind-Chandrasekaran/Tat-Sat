@@ -4,7 +4,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from security.jwt_manager import JWTManager
 
 from domain.object_storage import object_storage
+from domain.database import database
 from domain.supabase_service_client import supabase_service_client
+
 
 import network.request_parser as request_parser
 import network.request_models as request_models
@@ -77,13 +79,21 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
         # automatically adds the 200 and 422 
 
-        400: { 
-            "description": "Invalid Media ID(s).",
+        200: { "description" : "Post created."}, 
+
+        400: {
+            "description": "Bad request.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Text limit exceeded."
+                    }
+                }
+            }
         }
 
-    },
 
-             )
+    },)
 async def post( request_body : request_models.Post_RequestBody,  http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj_creator)):
 
     # AuthN & AuthZ  
@@ -98,22 +108,12 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     user_id = jwt_manager.user_id
     await object_storage.media_id_presence_check(request_body.media_ids, user_id)
 
-    
 
 
     # create post database entry (with status pending)
+    response = await database.insert(request_body, user_id)
 
-
-
-
-           
-
-
-    
-
-
-
-
+ 
 
     # send request to media verifier's messaging queue 
     # once it is implemented

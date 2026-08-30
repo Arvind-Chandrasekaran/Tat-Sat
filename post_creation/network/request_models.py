@@ -2,7 +2,7 @@
 Request schema/model or format in which request is to be given to each end-point
 """
 
-from pydantic import BaseModel, HttpUrl, Field
+from pydantic import BaseModel, HttpUrl, Field, model_validator
 from enum import Enum
 
 
@@ -37,10 +37,23 @@ class Post_RequestBody(BaseModel):
     # Optional: client can omit these entirely
     long_text : str | None = None
     media_ids: list[str] = Field(default_factory=list, max_length=4)
+    media_types : list[str] = Field(default_factory=list, max_length=4)
     reference_link: HttpUrl | None = None
     parent_post_id: str | None = None
     post_user_visibility : PostUserVisibilityType = PostUserVisibilityType.PUBLIC    # default value is given still better to make it compulsory for this info to come in from client.  
 
 
+    @model_validator(mode="after")
+    def validate_media_lists(self):
+
+        allowed = {"image", "video", "audio"}
+
+        if not set(self.media_types).issubset(allowed):
+            raise ValueError("media_types contains invalid values")
+
+        if len(self.media_ids) != len(self.media_types):
+            raise ValueError("media_types length must match media_ids length")
+
+        return self
 
 
