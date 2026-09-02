@@ -83,4 +83,4 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t post-creation-service:latest ./post_creation
+          docker build -t post-creation-service:latest .
