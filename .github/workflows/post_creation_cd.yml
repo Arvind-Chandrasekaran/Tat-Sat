@@ -1,0 +1,27 @@
+name: CD - Post Creation 
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'post_creation/**'
+      - '.github/workflows/post_creation_ci.yml'
+
+
+defaults:
+  run:
+    working-directory: ./post_creation
+
+jobs:
+
+  build-docker:
+    name: Build Production Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t post-creation-service:latest .
