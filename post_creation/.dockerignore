@@ -1,0 +1,112 @@
+# Git metadata
+.git
+.gitignore
+.github
+
+# Python cache and virtual environments
+__pycache__/
+**/__pycache__/
+*.py[cod]
+**/*.py[cod]
+*.pyo
+**/*.pyo
+*.pyd
+**/*.pyd
+.venv/
+**/.venv/
+venv/
+**/venv/
+env/
+**/env/
+ENV/
+**/ENV/
+
+# Test and coverage artifacts
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+**/.coverage
+.coverage.*
+**/.coverage.*
+htmlcov/
+**/htmlcov/
+coverage.xml
+**/coverage.xml
+pytest.ini
+**/pytest.ini
+
+# Local environment and secrets
+.env
+**/.env
+.env.*
+**/.env.*
+*.pem
+**/*.pem
+*.key
+**/*.key
+*.crt
+**/*.crt
+
+# Editor and OS files
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+
+# Logs and temp files
+*.log
+**/*.log
+*.tmp
+**/*.tmp
+*.bak
+**/*.bak
+*.swp
+**/*.swp
+
+# Build artifacts
+build/
+**/build/
+dist/
+**/dist/
+*.egg-info/
+**/*.egg-info/
+.eggs/
+**/.eggs/
+
+# Local database or generated files
+*.sqlite3
+**/*.sqlite3
+*.db
+**/*.db
+
+# Keep only the app code and dependency manifest needed for the image
+# (the Dockerfile already copies requirements.txt and the app folder contents)
+test/
+**/test/
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+
+# Keep only the app code and dependency manifest needed for the image
+# (the Dockerfile already copies requirements.txt and the app folder contents)
+
+test/

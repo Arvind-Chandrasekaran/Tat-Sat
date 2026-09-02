@@ -8,7 +8,7 @@ from supabase import Client, create_client
 
 load_dotenv()
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "http://localhost:8000"
 
 
 @pytest.fixture(scope="session")
