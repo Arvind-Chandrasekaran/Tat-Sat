@@ -72,15 +72,3 @@ jobs:
 
 
 
-  build-docker:
-    name: Build Production Docker Image
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: |
-          docker build -t post-creation-service:latest .
