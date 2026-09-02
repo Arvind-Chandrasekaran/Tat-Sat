@@ -128,7 +128,9 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
 
 
-@router.get("/health"
+@router.get(
+
+    "/health",
 
     tags=["Check health of the service"],
 
