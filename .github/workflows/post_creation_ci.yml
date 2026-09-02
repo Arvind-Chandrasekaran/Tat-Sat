@@ -52,7 +52,8 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
 
         run: |
-          uvicorn server:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+          nohup uvicorn server:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+          timeout 30 bash -c 'until curl -sf http://127.0.0.1:8000/api-reference > /dev/null; do sleep 0.5; done'
 
 
 
