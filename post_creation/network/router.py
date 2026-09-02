@@ -127,7 +127,9 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
 
 
-
+@router.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 
