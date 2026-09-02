@@ -1,0 +1,76 @@
+name: CI - Post Creation 
+
+on:
+  push:
+    branches: [ main, post_creation_service ]
+    paths:
+      - 'post_creation/**'
+      - '.github/workflows/post_creation_ci.yml'
+
+
+defaults:
+  run:
+    working-directory: ./post_creation
+
+jobs:
+
+  # First we set up the environment for test like docker and then we run test
+  # we could have build the container and then used the container for test but this simpler version is fine for what is being done
+
+  test:
+
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Copy Repository files
+        uses: actions/checkout@v4
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: 'pip'
+          cache-dependency-path: 'post_creation/requirements.txt'
+
+
+      # separate pytest install is essential is requirements.txt should not have pytest
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+          
+
+      - name: Run Pytest with Injected Environment Variables
+        env:
+
+          ENV: test
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_PROJECT_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          
+        run: |
+          pytest test/ -v
+
+
+
+
+  build-docker:
+    name: Build Production Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t post-creation-service:latest ./post_creation
