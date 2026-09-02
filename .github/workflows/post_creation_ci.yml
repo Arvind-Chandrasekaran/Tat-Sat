@@ -2,7 +2,7 @@ name: CI - Post Creation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ post_creation_service ]
     paths:
       - 'post_creation/**'
       - '.github/workflows/post_creation_ci.yml'
