@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'post_creation/**'
-      - '.github/workflows/post_creation_ci.yml'
+      - '.github/workflows/post_creation_cd.yml'
 
 
 defaults:
@@ -13,6 +13,8 @@ defaults:
     working-directory: ./post_creation
 
 jobs:
+
+  # This docker image is not uploaded to docker hub. Direct GitHub main branch to railway deployment is done. This image will be used in future to switch platforms. 
 
   build-docker:
     name: Build Production Docker Image
@@ -25,3 +27,5 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t post-creation-service:latest .
+
+
