@@ -6,8 +6,10 @@ export const options = {
   duration: '30s',
 };
 
+const BASE_URL = __ENV.POST_CREATION_DEPLOYED_URL
+
 export default function () {
-  const url = `${__ENV.BASE_URL}/create-post`;
+  const url = `${BASE_URL}/create-post`;
 
   const payload = JSON.stringify({
     title: 'Performance Test',
