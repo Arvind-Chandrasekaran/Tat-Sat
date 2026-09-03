@@ -43,3 +43,11 @@ __pycache__/
 # Pytest runtime cache (NOT the config file)
 # ==========================================
 .pytest_cache/
+
+
+
+
+# ==========================================
+# Login Credentials
+# ==========================================
+auth/credentials.json
