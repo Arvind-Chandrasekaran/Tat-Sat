@@ -68,7 +68,7 @@ jobs:
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           
         run: |
-          pytest integration_test/ -v
+          pytest test_integration/ -v
 
 
 

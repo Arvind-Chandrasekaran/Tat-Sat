@@ -109,4 +109,5 @@ dist/
 # Keep only the app code and dependency manifest needed for the image
 # (the Dockerfile already copies requirements.txt and the app folder contents)
 
-test/
+test_integration/
+test_performance/
