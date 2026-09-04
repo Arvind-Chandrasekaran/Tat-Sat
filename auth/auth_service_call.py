@@ -65,6 +65,9 @@ for email, token_list in data.items():
     if active_tokens:
         cleaned_data[email] = active_tokens
 
+
+
+
 # 4. Save back to credentials.json
 with open(file_path, "w", encoding="utf-8") as f:
     json.dump(cleaned_data, f, indent=2)
