@@ -41,7 +41,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest
+          pip install pytest 
 
           
       - name: Start API
@@ -68,7 +68,7 @@ jobs:
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           
         run: |
-          pytest test_integration/ -v
+          pytest tests/test_integration/ -v
 
 
 
