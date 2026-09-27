@@ -21,7 +21,7 @@ class Database:
 		├── long_text
 		├── media_ids (we ignore this)
 		├── media_types (we ignore this)
-		├── reference_link
+		├── external_link
 		├── parent_id - fk application.posts.id
 		├── created_at
 		├── post_status - active, deleted, pending, rejected
@@ -35,7 +35,7 @@ class Database:
 			"user_id": user_id,
 			"text": request_body.text,
 			"long_text": request_body.long_text,
-			"reference_link": str(request_body.reference_link) if request_body.reference_link else None,
+			"external_link": str(request_body.external_link) if request_body.external_link else None,
 			"parent_post_id": request_body.parent_post_id,
 			"post_status": post_status,
 			"post_user_visibility": request_body.post_user_visibility.value,
