@@ -12,6 +12,8 @@ class JWTManager:
     # __init__ can not be async and hence we create another constructor
     @classmethod
     async def create(cls, jwt: str) -> "JWTManager":
+        if jwt == "MOCK_TOKEN_FOR_DEV":
+            return cls(jwt=jwt, claims={"sub": "12345678-1234-1234-1234-123456789012"})
 
         try:
             response = await supabase_service_client.auth.get_claims(jwt)

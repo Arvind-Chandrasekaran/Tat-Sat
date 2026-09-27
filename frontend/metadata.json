@@ -1,0 +1,9 @@
+{
+  "name": "TatSat - Quality Discourse Network",
+  "description": "A hybrid microblogging and video platform where content visibility is driven by AI-analyzed discourse quality, nuance, and constructiveness rather than raw engagement metrics.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": []
+}
