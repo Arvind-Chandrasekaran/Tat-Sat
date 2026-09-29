@@ -102,22 +102,15 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
 
-    # check for phantom media ids
-    # (this can be outsourced to the media verifier, that kind of modularity makes sense, but having it hear reduces false requests before database enrty is made.)
-
-    user_id = jwt_manager.user_id
-    await object_storage.media_id_presence_check(request_body.media_ids, user_id)
-
-
 
     # create post database entry (with status pending)
-    response = await database.insert(request_body, user_id)
+    # response = await database.insert(request_body, user_id)
 
- 
+
 
     # send request to media verifier's messaging queue 
+    # Send it along with media ids for phantom media verification
     # once it is implemented
-        
 
 
     return {"message" : "Post Created."}
