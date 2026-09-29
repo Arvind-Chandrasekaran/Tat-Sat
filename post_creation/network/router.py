@@ -104,10 +104,10 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
 
     # create post database entry (with status pending)
-    # response = await database.insert(request_body, user_id)
+    response = await database.insert(request_body, user_id)
 
 
-
+ 
     # send request to media verifier's messaging queue 
     # Send it along with media ids for phantom media verification
     # once it is implemented
