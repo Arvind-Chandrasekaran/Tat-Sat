@@ -23,5 +23,5 @@ class PostCreationMessagingQueueClient:
         
 # One time synchronous setup of a messaging queue client.
 redis_url = os.environ.get("REDIS_URL")
-print(redis_url)
+print("redis url : ", redis_url)
 post_creation_messaging_queue_client = PostCreationMessagingQueueClient(redis_url, "post_creation_stream")
