@@ -19,9 +19,15 @@ class PostCreationMessagingQueueClient:
 	
 	async def upload(self, request_body: request_models.Post_RequestBody, user_id: str):
 		
+                body_dict = (
+                        request_body.model_dump(mode="json")
+                        if hasattr(request_body, "model_dump")
+                        else json.loads(request_body.json())
+                        )
+
                 redis_entry = {
-                        "user_id": user_id,
-                        "request_body" : request_body.model_dump_json(), 
+                "user_id": user_id,
+                "request_body": body_dict,
                 }
 
                 response =  await self._redis_client.xadd(
@@ -34,5 +40,5 @@ class PostCreationMessagingQueueClient:
 
         
 # One time synchronous setup of a messaging queue client.
-redis_url = os.environ.get("REDIS_URL", "post_creation_stream")
-post_creation_messaging_queue_client = PostCreationMessagingQueueClient(redis_url)
+redis_url = os.environ.get("REDIS_URL")
+post_creation_messaging_queue_client = PostCreationMessagingQueueClient(redis_url", post_creation_stream")
