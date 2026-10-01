@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, status, Depends, Header 
+from fastapi import APIRouter, Request, status, Depends, Header, HTTPException 
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer 
 
 from security.jwt_manager import JWTManager
@@ -78,7 +78,11 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
         # automatically adds the 200 and 422 
 
-        200: { "description" : "Post created."}, 
+        202: {
+                "status": "queued",
+                "message": "Post submitted for processing",
+                "queue_id": "entry_id",
+            }, 
 
         400: {
             "description": "Bad request.",
@@ -104,11 +108,26 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
     # Uploaded post to messaging queue
     user_id = jwt_manager.user_id
-    response = await post_creation_messaging_queue_client.upload(request_body, user_id)
 
+    try:
+            entry_id = await post_creation_messaging_queue_client.upload(
+                request_body=request_body, user_id=user_id
+            )
+            # HTTP 202 Accepted: standard code indicating request queued for processing
+            return {
+                "status": "queued",
+                "message": "Post submitted for processing",
+                "queue_id": entry_id,
+            }
+
+    except Exception as exc:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to enqueue post due to an internal error.",
+        )
  
 
-    return {"message" : "Post Created."}
 
 
 

@@ -13,29 +13,29 @@ class PostCreationMessagingQueueClient:
 	
 	
 	def __init__(self, redis_url = "redis://localhost:6379/0", stream_name = "post_creation_stream"):
-		self.STREAM_NAME = stream_name
-		self._redis_client = Redis.from_url(redis_url, decode_responses=True)
+                self.STREAM_NAME = stream_name
+                self._redis_client = Redis.from_url(redis_url, decode_responses=True)
 
 	
-	async def upload(self, request_body: request_models.Post_RequestBody, user_id: str):
-		
+        async def upload(self, request_body: request_models.Post_RequestBody, user_id: str):
+                
                 body_dict = (
                         request_body.model_dump(mode="json")
-                        if hasattr(request_body, "model_dump")
-                        else json.loads(request_body.json())
-                        )
+                        
+                )
 
                 redis_entry = {
-                "user_id": user_id,
-                "request_body": body_dict,
+                        "user_id": user_id,
+                        "request_body": body_dict,
                 }
 
-                response =  await self._redis_client.xadd(
+
+                response = await self._redis_client.xadd(
                         self.STREAM_NAME,
                         {"data": json.dumps(redis_entry)},
                 )
 
-                return response 
+                return response
 
 
         
