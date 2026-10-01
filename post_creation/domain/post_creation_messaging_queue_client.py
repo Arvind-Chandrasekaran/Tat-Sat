@@ -30,13 +30,12 @@ class PostCreationMessagingQueueClient:
                 }
 
 
-                response = await self._redis_client.xadd(
+                return await self._redis_client.xadd(
                         self.STREAM_NAME,
                         {"data": json.dumps(redis_entry)},
                 )
 
-                return response
-
+                
 
         
 # One time synchronous setup of a messaging queue client.
