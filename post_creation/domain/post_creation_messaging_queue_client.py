@@ -35,7 +35,7 @@ class PostCreationMessagingQueueClient:
                         {"data": json.dumps(redis_entry)},
                 )
 
-                return  response 
+                return response 
 
 
         

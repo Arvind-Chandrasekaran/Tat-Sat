@@ -104,8 +104,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
     # Uploaded post to messaging queue
     user_id = jwt_manager.user_id
-    response = await post_creation_messaging_queue_client.insert(request_body, user_id)
-
+    response = await post_creation_messaging_queue_client.upload(request_body, user_id)
 
  
 
