@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Any
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,7 +15,6 @@ class PostCreationMessagingQueueClient:
                 self.STREAM_NAME = stream_name
                 self._redis_client = Redis.from_url(redis_url, decode_responses=True)
 
-	
         async def upload(self, request_body: request_models.Post_RequestBody, user_id: str):
                 
                 body_dict = (
