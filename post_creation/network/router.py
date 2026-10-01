@@ -78,7 +78,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
         # automatically adds the 200 and 422 
 
-        202: {
+        200: {
                 "status": "queued",
                 "message": "Post submitted for processing",
                 "queue_id": "entry_id",
@@ -114,7 +114,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
             entry_id = await post_creation_messaging_queue_client.upload(
                 request_body=request_body, user_id=user_id
             )
-            # HTTP 202 Accepted: standard code indicating request queued for processing
+            # HTTP 200 Accepted: standard code indicating request queued for processing
             return {
                 "status": "queued",
                 "message": "Post submitted for processing",
