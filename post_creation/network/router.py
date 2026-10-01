@@ -4,9 +4,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from security.jwt_manager import JWTManager
 
 from domain.object_storage import object_storage
-from domain.database import database
 from domain.supabase_service_client import supabase_service_client
-
+from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
 
 import network.request_parser as request_parser
 import network.request_models as request_models
@@ -103,15 +102,12 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
 
 
-    # create post database entry (with status pending)
-    response = await database.insert(request_body, user_id)
+    # Uploaded post to messaging queue
+    user_id = jwt_manager.user_id
+    response = await post_creation_messaging_queue_client.insert(request_body, user_id)
 
 
  
-    # send request to media verifier's messaging queue 
-    # Send it along with media ids for phantom media verification
-    # once it is implemented
-
 
     return {"message" : "Post Created."}
 
