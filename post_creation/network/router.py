@@ -106,7 +106,6 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
 
-
     # Uploaded post to messaging queue
     user_id = jwt_manager.user_id
 
