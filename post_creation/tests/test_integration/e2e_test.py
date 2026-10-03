@@ -11,9 +11,17 @@ load_dotenv()
 BASE_URL = "http://localhost:8000"
 
 
+def assert_queued(response: requests.Response) -> dict:
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body.get("status") == "queued"
+    assert body.get("message") == "Post submitted for processing"
+    assert body.get("queue_id")
+    return body
+
+
 @pytest.fixture(scope="session")
 def valid_access_token() -> str:
-    """Authenticates once per test session and yields a valid JWT."""
     url: str = os.environ["SUPABASE_PROJECT_URL"]
     key: str = os.environ["SUPABASE_PUBLISHABLE_KEY"]
     client: Client = create_client(url, key)
@@ -69,14 +77,10 @@ def upload_test_files(signed_uploads: list[dict]) -> list[str]:
     return uploaded_media_ids
 
 
-
-
-
-
-
 # --- Negative Auth Tests ---
 
 
+# Rejects GET /post-media-urls when the JWT is invalid or the Authorization header is missing.
 @pytest.mark.parametrize(
     "headers",
     [
@@ -90,37 +94,34 @@ def test_unauthorized_requests(headers: dict[str, str]) -> None:
     assert response.status_code == 401
 
 
-@pytest.mark.parametrize(
-    "endpoint, method",
-    [
-        ("/post", "post"),
-    ],
-    ids=["create_post_requires_auth"],
-)
-def test_post_requires_auth(endpoint: str, method: str) -> None:
+# Rejects POST /post when no Authorization header is sent.
+def test_post_requires_auth() -> None:
     payload = {
         "text": "This should fail without auth.",
         "media_ids": [],
         "media_types": [],
     }
-    response = getattr(requests, method)(f"{BASE_URL}{endpoint}", json=payload, timeout=30)
+    response = requests.post(f"{BASE_URL}/post", json=payload, timeout=30)
     assert response.status_code == 401
-
-
-
-
-
-
 
 
 # --- Positive & Functional Tests ---
 
 
+# Confirms GET /health reports that the service is up.
+def test_health() -> None:
+    response = requests.get(f"{BASE_URL}/health", timeout=30)
+    assert response.status_code == 200
+    assert response.json().get("status") == "ok"
+
+
+# Confirms GET /post-media-urls succeeds with a valid JWT.
 def test_valid_token_access(auth_headers: dict[str, str]) -> None:
     response = requests.get(f"{BASE_URL}/post-media-urls", headers=auth_headers, timeout=30)
     assert response.status_code == 200
 
 
+# Fetches signed upload URLs and uploads sample image and video files to object storage.
 def test_media_upload_flow(auth_headers: dict[str, str]) -> None:
     response = requests.get(f"{BASE_URL}/post-media-urls", headers=auth_headers, timeout=30)
     assert response.status_code == 200
@@ -134,6 +135,7 @@ def test_media_upload_flow(auth_headers: dict[str, str]) -> None:
     assert len(uploaded_media_ids) == 2
 
 
+# Enqueues a text-only post and expects a queued response.
 def test_create_post_without_media(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "This is a valid text-only post created during E2E testing.",
@@ -143,13 +145,13 @@ def test_create_post_without_media(auth_headers: dict[str, str]) -> None:
     }
 
     response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
-    assert response.status_code == 200, response.text
-    assert response.json().get("message") == "Post Created."
+    assert_queued(response)
 
 
-
-
-def test_create_post_with_uploaded_media(auth_headers: dict[str, str], signed_upload_payload: list[dict]) -> None:
+# Uploads media, then enqueues a post that references those media IDs.
+def test_create_post_with_uploaded_media(
+    auth_headers: dict[str, str], signed_upload_payload: list[dict]
+) -> None:
     uploaded_media_ids = upload_test_files(signed_upload_payload[:2])
 
     payload = {
@@ -157,28 +159,27 @@ def test_create_post_with_uploaded_media(auth_headers: dict[str, str], signed_up
         "long_text": "This is a longer description that should be accepted when the media is valid.",
         "media_ids": uploaded_media_ids,
         "media_types": ["image", "video"],
-        "reference_link": "https://example.com/post",
+        "external_link": "https://example.com/post",
         "post_user_visibility": "public",
     }
 
     response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
-    assert response.status_code == 200, response.text
-    assert response.json().get("message") == "Post Created."
+    assert_queued(response)
 
 
-
-
-def test_post_rejects_invalid_media_ids(auth_headers: dict[str, str]) -> None:
+# Enqueues a post with media IDs that do not exist; this service does not validate presence.
+def test_post_queues_unknown_media_ids(auth_headers: dict[str, str]) -> None:
     payload = {
-        "text": "This should fail because the uploaded media does not exist.",
+        "text": "Unknown media IDs are accepted at enqueue time.",
         "media_ids": ["invalid-media-id-12345", "invalid-media-id-67890"],
         "media_types": ["image", "video"],
     }
 
     response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
-    assert response.status_code == 400, response.text
+    assert_queued(response)
 
 
+# Rejects a post when media_ids and media_types have different lengths.
 def test_post_rejects_mismatched_media_lists(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "This should fail because media_id and media_type lengths differ.",
@@ -190,14 +191,13 @@ def test_post_rejects_mismatched_media_lists(auth_headers: dict[str, str]) -> No
     assert response.status_code == 422, response.text
 
 
-def test_post_rejects_text_length_exceeded(auth_headers: dict[str, str]) -> None:
-    very_long_text = "A" * 20000
+# Enqueues a post with very long text; length limits are not enforced here.
+def test_post_queues_long_text(auth_headers: dict[str, str]) -> None:
     payload = {
-        "text": very_long_text,
+        "text": "A" * 20000,
         "media_ids": [],
         "media_types": [],
     }
 
     response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
-    assert response.status_code == 400, response.text
-    assert response.json().get("detail") == "Text limit exceeded."
+    assert_queued(response)
