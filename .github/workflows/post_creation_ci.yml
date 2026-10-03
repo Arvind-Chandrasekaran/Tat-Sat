@@ -5,6 +5,7 @@ on:
     branches: [ post_creation_service ]
     paths:
       - 'post_creation/**'
+      - 'post_verifier/**'
       - '.github/workflows/post_creation_ci.yml'
 
 
