@@ -3,8 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from security.jwt_manager import JWTManager
 
-from domain.object_storage import object_storage
-from domain.supabase_service_client import supabase_service_client
+from domain.object_storage_client import object_storage_client
 from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
 
 import network.request_parser as request_parser
@@ -53,7 +52,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
     # create signed upload url for return 
     user_id = jwt_manager.user_id
-    signed_upload_urls = await object_storage.create_signed_url_upload(user_id)
+    signed_upload_urls = await object_storage_client.create_signed_url_upload(user_id)
 
     return {  
         "signed_upload_urls": signed_upload_urls    # responds with 200 - ok message

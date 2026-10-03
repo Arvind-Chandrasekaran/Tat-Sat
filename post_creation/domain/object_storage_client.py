@@ -5,7 +5,7 @@ from domain.supabase_service_client import supabase_service_client
 import asyncio
 
 
-class ObjectStorage:
+class ObjectStorageClient:
         def __init__(self):
                 self._supabase_service_client = supabase_service_client
 
@@ -98,7 +98,7 @@ class ObjectStorage:
 
 
 # shared instance accross route handlers - stateless 
-object_storage = ObjectStorage()        
+object_storage_client = ObjectStorageClient()        
 
 
 
