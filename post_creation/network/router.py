@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Request, status, Depends, Header, HTTPException 
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer 
+from fastapi import APIRouter, status, Depends, HTTPException 
+from fastapi.security import HTTPAuthorizationCredentials 
 
 from security.jwt_manager import JWTManager
 

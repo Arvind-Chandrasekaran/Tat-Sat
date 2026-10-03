@@ -53,8 +53,7 @@ jobs:
 
         run: |
           nohup uvicorn server:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
-          timeout 30 bash -c 'until curl -sf http://127.0.0.1:8000/api-reference > /dev/null; do sleep 0.5; done'
-
+          timeout 30 bash -c 'until curl -sf http://127.0.0.1:8000/health > /dev/null; do sleep 0.5; done'
 
 
 
