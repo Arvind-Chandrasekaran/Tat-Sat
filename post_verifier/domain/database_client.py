@@ -7,7 +7,7 @@ import network.request_models as request_models
 from uuid import uuid4
 
 
-class Database:
+class DatabaseClient:
 	def __init__(self):
 		self._supabase_service_client = supabase_service_client
 
@@ -126,4 +126,4 @@ class Database:
 
 
 # Shared stateless instance for route handlers.
-database = Database()
+database_client = DatabaseClient()
