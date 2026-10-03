@@ -80,7 +80,7 @@ def upload_test_files(signed_uploads: list[dict]) -> list[str]:
 # --- Negative Auth Tests ---
 
 
-# Rejects GET /post-media-urls when the JWT is invalid or the Authorization header is missing.
+# GET /post-media-urls must return 401 when the JWT is invalid or the Authorization header is missing.
 @pytest.mark.parametrize(
     "headers",
     [
@@ -94,7 +94,7 @@ def test_unauthorized_requests(headers: dict[str, str]) -> None:
     assert response.status_code == 401
 
 
-# Rejects POST /post when no Authorization header is sent.
+# POST /post must return 401 when no Authorization header is sent.
 def test_post_requires_auth() -> None:
     payload = {
         "text": "This should fail without auth.",
@@ -108,20 +108,20 @@ def test_post_requires_auth() -> None:
 # --- Positive & Functional Tests ---
 
 
-# Confirms GET /health reports that the service is up.
+# GET /health confirms the service is running and returns status "ok".
 def test_health() -> None:
     response = requests.get(f"{BASE_URL}/health", timeout=30)
     assert response.status_code == 200
     assert response.json().get("status") == "ok"
 
 
-# Confirms GET /post-media-urls succeeds with a valid JWT.
+# A valid JWT can access GET /post-media-urls.
 def test_valid_token_access(auth_headers: dict[str, str]) -> None:
     response = requests.get(f"{BASE_URL}/post-media-urls", headers=auth_headers, timeout=30)
     assert response.status_code == 200
 
 
-# Fetches signed upload URLs and uploads sample image and video files to object storage.
+# Signed upload URLs can be used to PUT test image and video files into object storage.
 def test_media_upload_flow(auth_headers: dict[str, str]) -> None:
     response = requests.get(f"{BASE_URL}/post-media-urls", headers=auth_headers, timeout=30)
     assert response.status_code == 200
@@ -135,7 +135,7 @@ def test_media_upload_flow(auth_headers: dict[str, str]) -> None:
     assert len(uploaded_media_ids) == 2
 
 
-# Enqueues a text-only post and expects a queued response.
+# A text-only POST /post is accepted and enqueued for processing.
 def test_create_post_without_media(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "This is a valid text-only post created during E2E testing.",
@@ -148,7 +148,7 @@ def test_create_post_without_media(auth_headers: dict[str, str]) -> None:
     assert_queued(response)
 
 
-# Uploads media, then enqueues a post that references those media IDs.
+# POST /post with uploaded media IDs, types, and an external link is accepted and enqueued.
 def test_create_post_with_uploaded_media(
     auth_headers: dict[str, str], signed_upload_payload: list[dict]
 ) -> None:
@@ -167,7 +167,7 @@ def test_create_post_with_uploaded_media(
     assert_queued(response)
 
 
-# Enqueues a post with media IDs that do not exist; this service does not validate presence.
+# Unknown media IDs are still enqueued here; presence checks live in another service.
 def test_post_queues_unknown_media_ids(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "Unknown media IDs are accepted at enqueue time.",
@@ -179,7 +179,7 @@ def test_post_queues_unknown_media_ids(auth_headers: dict[str, str]) -> None:
     assert_queued(response)
 
 
-# Rejects a post when media_ids and media_types have different lengths.
+# POST /post returns 422 when media_ids and media_types have different lengths.
 def test_post_rejects_mismatched_media_lists(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "This should fail because media_id and media_type lengths differ.",
@@ -191,7 +191,7 @@ def test_post_rejects_mismatched_media_lists(auth_headers: dict[str, str]) -> No
     assert response.status_code == 422, response.text
 
 
-# Enqueues a post with very long text; length limits are not enforced here.
+# Very long text is still enqueued here; length checks live in another service.
 def test_post_queues_long_text(auth_headers: dict[str, str]) -> None:
     payload = {
         "text": "A" * 20000,
