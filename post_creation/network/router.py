@@ -1,14 +1,22 @@
+# Network 
 from fastapi import APIRouter, status, Depends, HTTPException 
-from fastapi.security import HTTPAuthorizationCredentials 
-
-from security.jwt_manager import JWTManager
-
-from domain.object_storage_client import object_storage_client
-from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
+from fastapi.responses import JSONResponse
 
 import network.request_parser as request_parser
 import network.request_models as request_models
 import network.response_models as response_models
+
+
+
+# Security
+from fastapi.security import HTTPAuthorizationCredentials 
+from security.jwt_manager import JWTManager
+
+# domain 
+from domain.object_storage_client import object_storage_client
+from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
+
+
 
 
 
@@ -62,6 +70,8 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
 
 
 
+
+
 @router.post(
 
     "/post",
@@ -74,28 +84,24 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
     """,
 
     responses = {
-
-        # automatically adds the 200 and 422 
-
-        200: {
-                "status": "queued",
-                "message": "Post submitted for processing",
-                "queue_id": "entry_id",
-            }, 
-
-        422: {
-            "description": "Unprocessable Entity",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Text limit exceeded."
-                    }
+        
+        # 422 (request body validation error) and 200 (success status code are usually added automatically).
+    
+                    202: {
+                            "description": "Post submitted for processing",
+                            "content": {
+                                            "application/json": {
+                                                "example": {
+                                                    "status": "queued",
+                                                    "message": "Post submitted for processing",
+                                                    "queue_id": "entry_id"
+                                                            }
+                                                                }
+                                    }
+                        }
                 }
-            }
-        }
 
-
-    },)
+    )
 
 async def post( request_body : request_models.Post_RequestBody,  http_authorization_header_credentials_obj: HTTPAuthorizationCredentials = Depends(request_parser.http_authorization_header_credentials_obj_creator)):
 
@@ -105,6 +111,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
 
 
+
     # Uploaded post to messaging queue
     user_id = jwt_manager.user_id
 
@@ -112,12 +119,15 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
             entry_id = await post_creation_messaging_queue_client.upload(
                 request_body=request_body, user_id=user_id
             )
-            # HTTP 200 Accepted: standard code indicating request queued for processing
-            return {
-                "status": "queued",
-                "message": "Post submitted for processing",
-                "queue_id": entry_id,
-            }
+
+            return JSONResponse(
+                                status_code=status.HTTP_202_ACCEPTED,
+                                content= {
+                                            "status": "queued",
+                                            "message": "Post submitted for processing",
+                                            "queue_id": entry_id,
+                                         },
+                                )
 
     except Exception as exc:
 
@@ -146,7 +156,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
 
 
             )
-def health():
+async def health():
     return {"status": "ok"}
 
 
