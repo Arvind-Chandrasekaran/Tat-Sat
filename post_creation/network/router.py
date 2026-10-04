@@ -10,7 +10,9 @@ import network.response_models as response_models
 
 # Security
 from fastapi.security import HTTPAuthorizationCredentials 
-from security.jwt_manager import JWTManager
+from security.jwt_client import JWTClient, InvalidJWTError, JWTVerifierError
+
+
 
 # domain 
 from domain.object_storage_client import object_storage_client
@@ -56,10 +58,29 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
     # AuthN & AuthZ  
     # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using depends 
     jwt = http_authorization_header_credentials_obj.credentials
-    jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
+
+    try:
+        jwt_client = await JWTClient.create(jwt)  # will perform authN and authZ  
+
+    except InvalidJWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+    except JWTVerifierError:
+        raise HTTPException(
+            status_code=500,
+            detail="Authentication service unavailable",
+        )
+
+
+
 
     # create signed upload url for return 
-    user_id = jwt_manager.user_id
+    user_id = jwt_client.user_id
     signed_upload_urls = await object_storage_client.create_signed_url_upload(user_id)
 
     return {  
@@ -98,7 +119,18 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
                                                             }
                                                                 }
                                     }
-                        }
+                        },
+
+                    
+                    500 : {
+                            
+                            "description" : "Failed to enqueue post due to an internal error."
+
+                          }
+                    
+
+
+
                 }
 
     )
@@ -108,12 +140,28 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     # AuthN & AuthZ  
     # http_authorization_header_credentials_obj = request_parser.http_authorization_header_credentials_obj_creator.__call__(request)   # request is instance of Request. but no need for this, we have the done it using Depends 
     jwt = http_authorization_header_credentials_obj.credentials
-    jwt_manager = await JWTManager.create(jwt) # will perform authN and authZ   
+    
+    try:
+        jwt_client = await JWTClient.create(jwt)  # will perform authN and authZ  
+
+    except InvalidJWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    except JWTVerifierError:
+        raise HTTPException(
+            status_code=500,
+            detail="Authentication service unavailable",
+        )
 
 
 
+    
     # Uploaded post to messaging queue
-    user_id = jwt_manager.user_id
+    user_id = jwt_client.user_id
 
     try:
             entry_id = await post_creation_messaging_queue_client.upload(
@@ -121,7 +169,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
             )
 
             return JSONResponse(
-                                status_code=status.HTTP_202_ACCEPTED,
+                                status_code=202,
                                 content= {
                                             "status": "queued",
                                             "message": "Post submitted for processing",
@@ -132,7 +180,7 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
     except Exception as exc:
 
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail="Failed to enqueue post due to an internal error.",
         )
  
