@@ -182,12 +182,32 @@ def test_post_rejects_mismatched_media_lists(auth_headers: dict[str, str]) -> No
     assert response.status_code == 422, response.text
 
 
-def test_post_queues_long_text(auth_headers: dict[str, str]) -> None:
+def test_post_text_size_limit(auth_headers: dict[str, str]) -> None:
     payload = {
-        "text": "A" * 20000,
+        "text": "A" * 288,
         "media_ids": [],
         "media_types": [],
     }
 
     response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
     assert_queued(response)
+
+    payload["text"] = "A" * 289
+    response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
+    assert response.status_code == 422, response.text
+
+
+def test_post_long_text_size_limit(auth_headers: dict[str, str]) -> None:
+    payload = {
+        "text": "A valid short post.",
+        "long_text": "A" * 10_000,
+        "media_ids": [],
+        "media_types": [],
+    }
+
+    response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
+    assert_queued(response)
+
+    payload["long_text"] = "A" * 10_001
+    response = requests.post(f"{BASE_URL}/post", json=payload, headers=auth_headers, timeout=30)
+    assert response.status_code == 422, response.text

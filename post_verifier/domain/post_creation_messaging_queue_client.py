@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 
@@ -17,10 +18,28 @@ class PostCreationMessagingQueueClient:
                 redis_entry = {"user_id": user_id, "request_body": body_dict}
                 return await self._redis_client.xadd(self.STREAM_NAME, {"data": json.dumps(redis_entry)})
 
-                
+        async def consume(self):
+                last_id = "0-0"
 
-        
-# One time synchronous setup of a messaging queue client.
+                while True:
+                        messages = await self._redis_client.xread(
+                                {self.STREAM_NAME: last_id},
+                                count=1,
+                                block=1000,
+                        )
+
+                        for _, entries in messages:
+                                for entry_id, fields in entries:
+                                        message = json.loads(fields["data"])
+                                        print(message, flush=True)
+                                        await self._redis_client.xdel(self.STREAM_NAME, entry_id)
+                                        last_id = entry_id
+
+
 redis_url = os.environ.get("REDIS_URL")
 redis_url = "redis://localhost:6379/0" if not redis_url else redis_url
 post_creation_messaging_queue_client = PostCreationMessagingQueueClient(redis_url, "post_creation_stream")
+
+
+if __name__ == "__main__":
+        asyncio.run(post_creation_messaging_queue_client.consume())

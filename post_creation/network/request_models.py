@@ -38,11 +38,11 @@ class Post_RequestBody(BaseModel):
     """
 
     # Required
-    text: str
+    text: str = Field(max_length=288)
 
 
     # Optional: client can omit these entirely
-    long_text : str | None = None
+    long_text : str | None = Field(default=None, max_length=10_000)
     media_ids: list[str] = Field(default_factory=list, max_length=4)
     media_types : list[MediaType] = Field(default_factory=list, max_length=4)
     external_link: HttpUrl | None = None
@@ -57,5 +57,4 @@ class Post_RequestBody(BaseModel):
             raise ValueError("media_types length must match media_ids length")
 
         return self
-
 
