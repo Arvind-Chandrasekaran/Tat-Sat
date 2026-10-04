@@ -50,8 +50,6 @@ class JWTClient:
         
         except Exception as exc:
 
-            print(exc.code)
-
             if exc.code in INVALID_JWT_CODES:
                 raise InvalidJWTError(f"Invalid JWT: {exc}") from exc
             

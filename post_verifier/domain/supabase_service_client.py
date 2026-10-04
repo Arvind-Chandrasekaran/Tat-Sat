@@ -14,8 +14,6 @@ async def create_supabase():
   return supabase
 
 
-print("url", url)
-
 # asyncio.run will block the entire eventloop until this creations happens. We allow this one action to be synchronous. This will happen only once in entire event loop generation. 
 supabase_service_client = asyncio.run(create_supabase())
 

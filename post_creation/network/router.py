@@ -103,6 +103,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
     Creates an entry to the posts tabale based on the information provided by a user. 
     It will verify the information before creating the database entry.
     """,
+    status_code = 202,
 
     responses = {
         
@@ -120,6 +121,14 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
                                                                 }
                                     }
                         },
+
+
+
+                    401 : {
+                            "description": "Invalid authentication credentials.",
+
+                        },
+
 
                     
                     500 : {

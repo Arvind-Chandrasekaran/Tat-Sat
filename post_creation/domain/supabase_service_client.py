@@ -1,9 +1,10 @@
 import os
 from supabase import acreate_client, AsyncClient
-from dotenv import load_dotenv
 import asyncio
 
+from dotenv import load_dotenv
 load_dotenv()
+
 
 # shared instance across modules 
 url: str = os.environ.get("SUPABASE_PROJECT_URL")
