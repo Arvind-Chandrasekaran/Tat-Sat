@@ -1,0 +1,63 @@
+# ============================================
+# REDIS LOCAL DOCKER SETUP
+# ============================================
+
+# 1. Download Redis image from Docker Hub
+#    (Only needs to be done once)
+docker pull redis:latest
+
+
+# 2. Create and start a Redis container
+#    -d                  → run in background
+#    --name redis-local  → name the container
+#    -p 6379:6379        → host port 6379 → container port 6379
+docker run -d \
+  --name redis-local \
+  -p 6379:6379 \
+  redis:latest
+
+
+# 3. Check that Redis container is running
+docker ps
+
+
+# 4. Test Redis
+#    Opens the Redis CLI inside the container
+docker exec -it redis-local redis-cli
+
+# Then inside redis-cli:
+# PING
+# Expected: PONG
+#
+# Exit Redis CLI with:
+# exit
+
+
+# ============================================
+# STOP / START
+# ============================================
+
+# 5. Stop Redis when finished testing
+#    The container still exists; it is just stopped.
+docker stop redis-local
+
+
+# 6. Start the existing Redis container next time
+docker start redis-local
+
+
+# 7. Check running containers
+docker ps
+
+
+# ============================================
+# CLEANUP
+# ============================================
+
+# 8. Delete the container completely
+#    This does NOT delete the Redis image.
+docker rm -f redis-local
+
+
+# 9. Delete the Redis image if you also want to remove it
+docker rmi redis:latest
