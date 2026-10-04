@@ -83,8 +83,8 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
                 "queue_id": "entry_id",
             }, 
 
-        400: {
-            "description": "Bad request.",
+        422: {
+            "description": "Unprocessable Entity",
             "content": {
                 "application/json": {
                     "example": {
