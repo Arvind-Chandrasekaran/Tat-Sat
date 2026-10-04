@@ -124,7 +124,7 @@ async def post_media_urls(http_authorization_header_credentials_obj: HTTPAuthori
                     
                     500 : {
                             
-                            "description" : "Failed to enqueue post due to an internal error."
+                            "description" : "Server Error"
 
                           }
                     
@@ -158,8 +158,6 @@ async def post( request_body : request_models.Post_RequestBody,  http_authorizat
         )
 
 
-
-    
     # Uploaded post to messaging queue
     user_id = jwt_client.user_id
 
