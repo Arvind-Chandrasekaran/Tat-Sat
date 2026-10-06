@@ -50,6 +50,9 @@ docker start redis-local
 docker ps
 
 
+
+
+
 # ============================================
 # CLEANUP
 # ============================================
@@ -61,3 +64,16 @@ docker rm -f redis-local
 
 # 9. Delete the Redis image if you also want to remove it
 docker rmi redis:latest
+
+
+
+
+
+
+
+# ============================================
+# Redis Stream Mental Model 
+# ============================================
+This explains how the stream works. 
+https://redis.io/docs/latest/develop/data-types/streams/#examples
+redis-py is the API to be used for python. 
