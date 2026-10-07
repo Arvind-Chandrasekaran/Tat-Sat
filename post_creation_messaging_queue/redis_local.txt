@@ -1,4 +1,13 @@
 # ============================================
+# Redis Stream Mental Model 
+# ============================================
+This explains how the stream works. 
+https://redis.io/docs/latest/develop/data-types/streams/#examples
+redis-py is the API to be used for python. 
+
+
+
+# ============================================
 # REDIS LOCAL DOCKER SETUP
 # ============================================
 
@@ -68,12 +77,24 @@ docker rmi redis:latest
 
 
 
-
-
-
 # ============================================
-# Redis Stream Mental Model 
+# Redis Database Setup
 # ============================================
-This explains how the stream works. 
-https://redis.io/docs/latest/develop/data-types/streams/#examples
-redis-py is the API to be used for python. 
+
+1.  Stream key can be created when xadd is done. 
+    Key is idempotent and can be done dynamically like when adding new value. 
+
+ 
+2.  Create a consumer group. 
+    This is one time configuration that should done once. 
+    This is best done with CLI. 
+    Later workers can be added to this stream dynamically.
+
+
+
+
+
+
+
+
+

@@ -1,1 +1,0 @@
-from domain.post_verifier_messaging_queue_client import post_verifier_messaging_queue_client
