@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant C as Public Client
+    participant F as Feed API
+    participant DB as Supabase Postgres
+
+    C->>F: GET /feed?limit=20&cursor=...
+    F->>DB: active + public posts, newest first
+    DB-->>F: page of posts
+    F-->>C: feed + next_cursor
+    C->>F: GET next cursor
+    F->>DB: posts older than cursor
+    DB-->>F: next page
+    F-->>C: feed + next_cursor

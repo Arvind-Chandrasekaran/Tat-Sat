@@ -10,6 +10,11 @@ export interface QueueResponse {
     queue_id: string;
 }
 
+export interface FeedPage {
+    feed: Post[];
+    next_cursor: string | null;
+}
+
 export interface SignedUpload {
     media_id: string;
     path: string;
@@ -50,10 +55,18 @@ class TatSatBackend {
         this.log('Connected successfully to FastAPI backend.');
     }
 
-    async getFeed(filter: 'ALL' | 'HIGH_QUALITY' = 'ALL'): Promise<Post[]> {
+    async getFeed(
+        filter: 'ALL' | 'HIGH_QUALITY' = 'ALL',
+        cursor?: string,
+    ): Promise<FeedPage> {
         this.log(`Fetching ${filter === 'HIGH_QUALITY' ? 'high-quality ' : ''}feed...`);
-        const data = await (await this.request(`/feed?filter=${filter}`)).json();
-        return (data.feed || []).map((post: Record<string, any>) => this.mapDbPostToType(post));
+        const params = new URLSearchParams({ filter });
+        if (cursor) params.set('cursor', cursor);
+        const data = await (await this.request(`/feed?${params}`)).json();
+        return {
+            feed: (data.feed || []).map((post: Record<string, any>) => this.mapDbPostToType(post)),
+            next_cursor: data.next_cursor || null,
+        };
     }
 
     async getSignedUploadUrls(): Promise<SignedUpload[]> {

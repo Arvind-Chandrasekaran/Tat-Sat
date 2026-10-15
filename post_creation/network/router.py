@@ -1,23 +1,24 @@
 # Network
-from fastapi import APIRouter, status, Depends, HTTPException
+import base64
+import json
+
+from fastapi import APIRouter, status, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 
-import network.request_parser as request_parser
-import network.request_models as request_models
-import network.response_models as response_models
+from post_creation.network import request_parser, request_models, response_models
 
 
 
 # Security
 from fastapi.security import HTTPAuthorizationCredentials
-from security.jwt_client import JWTClient, InvalidJWTError, JWTVerifierError
+from post_creation.security.jwt_client import JWTClient, InvalidJWTError, JWTVerifierError
 
 
 
 # domain
-from domain.object_storage_client import object_storage_client
-from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
-from domain.supabase_service_client import supabase_service_client
+from post_creation.domain.object_storage_client import object_storage_client
+from post_creation.domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
+from post_creation.domain.supabase_service_client import supabase_service_client
 
 
 
@@ -26,21 +27,47 @@ from domain.supabase_service_client import supabase_service_client
 router = APIRouter()
 
 
+def _decode_feed_cursor(cursor: str | None) -> str | None:
+    if not cursor:
+        return None
+    try:
+        payload = json.loads(
+            base64.urlsafe_b64decode(cursor.encode("ascii")).decode("utf-8")
+        )
+        return payload["created_at"]
+    except (ValueError, KeyError, UnicodeDecodeError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid feed cursor") from exc
+
+
+def _encode_feed_cursor(created_at: str) -> str:
+    payload = json.dumps({"created_at": created_at}).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii")
+
+
 @router.get(
     "/feed",
     tags=["Feed"],
     description="Returns visible active posts for the frontend feed.",
 )
-async def feed(filter: str = "ALL"):
+async def feed(
+    filter: str = Query(default="ALL", pattern="^(ALL|HIGH_QUALITY)$"),
+    cursor: str | None = None,
+    limit: int = Query(default=20, ge=1, le=50),
+):
+    cursor_created_at = _decode_feed_cursor(cursor)
     query = (
         supabase_service_client
         .schema("domain")
         .table("posts")
         .select("*")
         .eq("post_status", "active")
+        .eq("post_user_visibility", "public")
         .order("created_at", desc=True)
-        .limit(50)
+        .limit(limit + 1)
     )
+    if cursor_created_at:
+        query = query.lt("created_at", cursor_created_at)
+
     response = await query.execute()
     posts = response.data or []
     if filter == "HIGH_QUALITY":
@@ -48,7 +75,14 @@ async def feed(filter: str = "ALL"):
             post for post in posts
             if int((post.get("analysis") or {}).get("score", 0)) > 50
         ]
-    return {"feed": posts}
+    has_more = len(posts) > limit
+    posts = posts[:limit]
+    next_cursor = (
+        _encode_feed_cursor(posts[-1]["created_at"])
+        if has_more and posts
+        else None
+    )
+    return {"feed": posts, "next_cursor": next_cursor}
 
 
 

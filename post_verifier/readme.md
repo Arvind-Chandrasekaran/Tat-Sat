@@ -1,9 +1,10 @@
 # Post verifier
 
-The verifier is the downstream consumer for `post_creation_stream`. Its
-database client is scaffolded, but the worker entrypoint is not implemented:
-[`main.py`](main.py) is currently empty. Until a consumer is running, queued
-posts are not persisted and pending posts cannot become visible.
+The verifier is the downstream consumer for `post_creation_stream`. The
+minimum worker now consumes messages with a Redis consumer group, validates
+media object ownership/existence, persists pending rows, and activates valid
+posts. Production retry, dead-letter, and media-content scanning remain
+outstanding.
 
 ## Intended responsibilities
 
@@ -34,11 +35,17 @@ Implemented:
 - Redis consumer helper code in the queue client.
 - Supabase service client wiring.
 
-Not implemented:
+Implemented:
 
 - Runnable worker entrypoint.
-- Consumer groups and durable acknowledgements.
-- Media existence and MIME verification in the verifier pipeline.
+- Consumer group reads and acknowledgements.
+- Media ownership/path existence validation.
+- Pending-to-active transition for valid posts.
+
+Not implemented:
+
+- Retry/dead-letter handling and pending-entry recovery.
+- MIME sniffing, size, checksum, and malware validation.
 - AI analysis and vector persistence in the verifier.
 - Status transitions and garbage collection.
 
@@ -72,11 +79,11 @@ sequenceDiagram
 
 ## TODO
 
-- [ ] Implement `main.py` as a long-running Redis consumer.
-- [ ] Use consumer groups, `XREADGROUP`, `XACK`, pending-entry recovery, and
-      dead-letter streams.
-- [ ] Add media ownership, object existence, MIME sniffing, size, and checksum
-      validation.
+- [x] Implement `main.py` as a long-running Redis consumer.
+- [x] Use consumer groups, `XREADGROUP`, and `XACK`.
+- [x] Add media ownership and object existence validation.
+- [ ] Add MIME sniffing, size, checksum, pending-entry recovery, and dead-letter
+      handling.
 - [ ] Make database insertion idempotent using a submission/message ID.
 - [ ] Add AI analysis and vector persistence to the verifier.
 - [ ] Add explicit post/media status transition endpoints or worker logic.

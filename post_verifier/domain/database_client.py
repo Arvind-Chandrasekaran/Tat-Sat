@@ -1,8 +1,8 @@
 from fastapi import HTTPException, status
 
-from domain.supabase_service_client import supabase_service_client
+from post_verifier.domain.supabase_service_client import supabase_service_client
 
-import network.request_models as request_models
+import post_creation.network.request_models as request_models
 
 from uuid import uuid4
 
@@ -104,6 +104,7 @@ class DatabaseClient:
 
 
 	async def insert(self, request_body: request_models.Post_RequestBody, user_id: str):
+		await self._validate_media(request_body.media_ids, user_id)
 
 		post_database_entry = self._post_database_entry_formatter(request_body, user_id)
 		response = await self._insert_post(post_database_entry)
@@ -121,6 +122,56 @@ class DatabaseClient:
 			)
 
 		return response
+
+	async def _validate_media(self, media_ids: list[str], user_id: str) -> None:
+		if not media_ids:
+			return
+		expected_paths = [f"{user_id}/{media_id}" for media_id in set(media_ids)]
+		response = await (
+			self._supabase_service_client
+			.schema("storage")
+			.table("objects")
+			.select("name")
+			.eq("bucket_id", "post_media")
+			.in_("name", expected_paths)
+			.execute()
+		)
+		found_paths = {row["name"] for row in (response.data or [])}
+		missing = sorted(set(expected_paths) - found_paths)
+		if missing:
+			raise ValueError(f"Media objects do not exist: {', '.join(missing)}")
+
+	async def set_post_status(self, post_id: str, post_status: str) -> None:
+		await (
+			self._supabase_service_client
+			.schema("domain")
+			.table("posts")
+			.update({"post_status": post_status})
+			.eq("id", post_id)
+			.execute()
+		)
+
+	async def insert_and_activate(
+		self,
+		request_body: request_models.Post_RequestBody,
+		user_id: str,
+	) -> str:
+		response = await self.insert(request_body, user_id)
+		if not response or not getattr(response, "data", None):
+			raise RuntimeError("Post insert returned no row")
+
+		post_id = response.data[0]["id"]
+		await self.set_post_status(post_id, request_models.PostStatus.ACTIVE.value)
+		if request_body.media_ids:
+			await (
+				self._supabase_service_client
+				.schema("domain")
+				.table("post_media")
+				.update({"post_media_status": "active"})
+				.eq("post_id", post_id)
+				.execute()
+			)
+		return post_id
 
 
 

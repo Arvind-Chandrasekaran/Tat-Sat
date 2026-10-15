@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 
@@ -9,37 +8,53 @@ from redis.asyncio import Redis
 
 
 class PostCreationMessagingQueueClient:
-        def __init__(self, redis_url, stream_name = "post_creation_stream"):
+        def __init__(
+                self,
+                redis_url: str | None,
+                stream_name: str = "post_creation_stream",
+                group_name: str = "post_verifier",
+                consumer_name: str | None = None,
+        ):
                 self.STREAM_NAME = stream_name
-                self._redis_client = Redis.from_url(redis_url, decode_responses=True)
+                self.GROUP_NAME = group_name
+                self.CONSUMER_NAME = consumer_name or f"worker-{os.getpid()}"
+                self._redis_client = Redis.from_url(
+                        redis_url or "redis://localhost:6379/0",
+                        decode_responses=True,
+                )
 
-        async def upload(self, request_body, user_id: str):
-                body_dict = request_body.model_dump(mode="json")
-                redis_entry = {"user_id": user_id, "request_body": body_dict}
-                return await self._redis_client.xadd(self.STREAM_NAME, {"data": json.dumps(redis_entry)})
-
-        async def consume(self):
-                last_id = "0-0"
-
-                while True:
-                        messages = await self._redis_client.xread(
-                                {self.STREAM_NAME: last_id},
-                                count=1,
-                                block=1000,
+        async def ensure_group(self) -> None:
+                try:
+                        await self._redis_client.xgroup_create(
+                                name=self.STREAM_NAME,
+                                groupname=self.GROUP_NAME,
+                                id="0-0",
+                                mkstream=True,
                         )
+                except Exception as exc:
+                        if "BUSYGROUP" not in str(exc):
+                                raise
 
-                        for _, entries in messages:
-                                for entry_id, fields in entries:
-                                        message = json.loads(fields["data"])
-                                        print(message, flush=True)
-                                        await self._redis_client.xdel(self.STREAM_NAME, entry_id)
-                                        last_id = entry_id
+        async def read(self, count: int = 1, block_ms: int = 1000):
+                await self.ensure_group()
+                return await self._redis_client.xreadgroup(
+                        groupname=self.GROUP_NAME,
+                        consumername=self.CONSUMER_NAME,
+                        streams={self.STREAM_NAME: ">"},
+                        count=count,
+                        block=block_ms,
+                )
+
+        async def acknowledge(self, entry_id: str) -> None:
+                await self._redis_client.xack(
+                        self.STREAM_NAME,
+                        self.GROUP_NAME,
+                        entry_id,
+                )
 
 
 redis_url = os.environ.get("REDIS_URL")
-redis_url = "redis://localhost:6379/0" if not redis_url else redis_url
-post_creation_messaging_queue_client = PostCreationMessagingQueueClient(redis_url, "post_creation_stream")
-
-
-if __name__ == "__main__":
-        asyncio.run(post_creation_messaging_queue_client.consume())
+post_creation_messaging_queue_client = PostCreationMessagingQueueClient(
+        redis_url,
+        "post_creation_stream",
+)

@@ -1,0 +1,1 @@
+"""TatSat post verifier service."""

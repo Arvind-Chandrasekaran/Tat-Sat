@@ -5,13 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from redis.asyncio import Redis
-import network.request_models as request_models
+import post_creation.network.request_models as request_models
 
 
 class PostCreationMessagingQueueClient:
         def __init__(self, redis_url, stream_name = "post_creation_stream"):
                 self.STREAM_NAME = stream_name
-                self._redis_client = Redis.from_url(redis_url, decode_responses=True)
+                self._redis_client = Redis.from_url(
+                        redis_url or "redis://localhost:6379/0",
+                        decode_responses=True,
+                )
 
         async def upload(self, request_body: request_models.Post_RequestBody, user_id: str):
                 body_dict = request_body.model_dump(mode="json")

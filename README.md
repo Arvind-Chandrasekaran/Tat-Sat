@@ -11,7 +11,7 @@ are still being built.
 | --- | --- | --- |
 | [`frontend/`](frontend/) | React/Vite client and prototype UX | Implemented prototype |
 | [`post_creation/`](post_creation/) | Authenticated media URLs and post queue API | Implemented queue boundary |
-| [`post_verifier/`](post_verifier/) | Redis consumer and domain persistence | Scaffolded, worker incomplete |
+| [`post_verifier/`](post_verifier/) | Redis consumer and domain persistence | Minimum active-post worker |
 | [`post_creation_messaging_queue/`](post_creation_messaging_queue/) | Redis stream notes/configuration | Configuration notes |
 | [`schema_unified.sql`](schema_unified.sql) | Canonical Supabase/Postgres domain schema | Source of truth |
 | [`docs/`](docs/) | Product, ranking, quality, and graph design | Design documentation |
@@ -71,6 +71,7 @@ The API exposes:
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/health` | Liveness check |
+| `GET` | `/feed` | Public active feed with cursor pagination and quality filter |
 | `GET` | `/post-media-urls` | Creates four authenticated signed upload URLs |
 | `POST` | `/post` | Validates/authenticates and queues a post, returning `202` |
 
@@ -78,24 +79,25 @@ The API exposes:
 
 ### Immediate integration
 
-- [ ] Implement the Redis consumer loop in `post_verifier/main.py`.
-- [ ] Connect the consumer to `DatabaseClient.insert`.
-- [ ] Add AI analysis, embeddings, topic extraction, and relationship persistence
+- [x] Implement the minimum Redis consumer loop in `post_verifier/main.py`.
+- [x] Connect the consumer to `DatabaseClient.insert`.
+- [ ] Add AI analysis, embeddings, and relationship persistence
       to the verifier pipeline.
-- [ ] Validate media ownership, object existence, MIME type, and size before
+- [x] Validate media ownership and object existence before
       inserting a post.
-- [ ] Transition posts and media from `pending` to `active` or `rejected`.
+- [x] Transition valid posts and media from `pending` to `active`.
 - [ ] Add retry, consumer-group, acknowledgement, and dead-letter handling.
-- [ ] Align the frontend with real Supabase sessions and the `202 queued`
+- [x] Align the frontend with real Supabase sessions and the `202 queued`
       response.
 
 ### Product services
 
-- [ ] Add feed retrieval, pagination, relevance ranking, temporal ranking, DQS,
+- [ ] Add relevance ranking, temporal ranking, DQS,
       contributor score, and visibility score.
 - [ ] Add comments/replies and related-content endpoints.
 - [ ] Persist and query knowledge-graph links and semantic relationships.
-- [ ] Add topic, stance, information-type, evidence-basis, and sentiment labels.
+- [x] Add a baseline batch topic model for active posts.
+- [ ] Add stance, information-type, evidence-basis, and sentiment labels.
 - [ ] Add account lifecycle, follows, preferences, creator metrics, and
       personalized recommendations.
 

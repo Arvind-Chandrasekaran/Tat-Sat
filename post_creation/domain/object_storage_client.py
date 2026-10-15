@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
 import uuid
-from domain.supabase_service_client import supabase_service_client
+from post_creation.domain.supabase_service_client import supabase_service_client
 import asyncio
 
 
@@ -99,7 +99,6 @@ class ObjectStorageClient:
 
 # shared instance accross route handlers - stateless
 object_storage_client = ObjectStorageClient()
-
 
 
 

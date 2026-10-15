@@ -29,11 +29,20 @@ create table if not exists domain.posts (
   -- AI Integration Fields
   analysis jsonb not null default '{}'::jsonb,
   topic text,
+  topic_confidence numeric,
+  topic_keywords jsonb not null default '[]'::jsonb,
+  topic_model_version text,
+  topic_updated_at timestamp with time zone,
   embedding vector(768),
   topic_embedding vector(768),
   likes int default 0,
   bookmarks int default 0
 );
+
+alter table domain.posts add column if not exists topic_confidence numeric;
+alter table domain.posts add column if not exists topic_keywords jsonb not null default '[]'::jsonb;
+alter table domain.posts add column if not exists topic_model_version text;
+alter table domain.posts add column if not exists topic_updated_at timestamp with time zone;
 
 -- Indexing for AI
 create index if not exists posts_embedding_diskann_idx on domain.posts using diskann (embedding);

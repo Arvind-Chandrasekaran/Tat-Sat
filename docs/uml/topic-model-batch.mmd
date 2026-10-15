@@ -1,0 +1,8 @@
+flowchart LR
+    Active[(Active posts without topic)]
+    Vectorize[TfidfVectorizer]
+    Cluster[KMeans clusters]
+    Metadata[Topic + confidence + keywords + model version]
+    DB[(domain.posts)]
+
+    Active --> Vectorize --> Cluster --> Metadata --> DB

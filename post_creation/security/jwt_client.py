@@ -1,4 +1,4 @@
-from domain.supabase_service_client import supabase_service_client
+from post_creation.domain.supabase_service_client import supabase_service_client
 
 
 

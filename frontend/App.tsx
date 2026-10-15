@@ -13,6 +13,8 @@ import { Filter, Database, Server, AlertTriangle, Key, ChevronRight, RefreshCcw,
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavigationTab>(NavigationTab.FEED);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [nextFeedCursor, setNextFeedCursor] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [semanticStatus, setSemanticStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('loading');
   const [bootLogs, setBootLogs] = useState<string[]>([]);
@@ -42,7 +44,8 @@ const App: React.FC = () => {
         try {
             await backend.initialize(addLog);
             const feed = await backend.getFeed();
-            setPosts(feed);
+            setPosts(feed.feed);
+            setNextFeedCursor(feed.next_cursor);
             setSemanticStatus('success');
             setIsInitializing(false);
         } catch (e: any) {
@@ -84,10 +87,26 @@ const App: React.FC = () => {
      const refresh = async () => {
          const mode = activeTab === NavigationTab.EXPLORE ? 'HIGH_QUALITY' : 'ALL';
          const feed = await backend.getFeed(mode);
-         setPosts(feed);
+         setPosts(feed.feed);
+         setNextFeedCursor(feed.next_cursor);
      };
      refresh();
   }, [activeTab, isInitializing, semanticStatus]);
+
+  const loadMorePosts = async () => {
+      if (!nextFeedCursor || isLoadingMore) return;
+      setIsLoadingMore(true);
+      try {
+          const filter = activeTab === NavigationTab.EXPLORE ? 'HIGH_QUALITY' : 'ALL';
+          const page = await backend.getFeed(filter, nextFeedCursor);
+          setPosts(prev => [...prev, ...page.feed]);
+          setNextFeedCursor(page.next_cursor);
+      } catch (error) {
+          addLog(`Feed pagination failed: ${error}`);
+      } finally {
+          setIsLoadingMore(false);
+      }
+  };
   
   const handlePostCreate = async (content: string, _type: PostType, _analysis: AnalysisResult, mediaFile?: File) => {
     try {
@@ -118,7 +137,7 @@ const App: React.FC = () => {
           const updates = await backend.reanalyzeGraph();
           if (updates > 0) {
               const feed = await backend.getFeed();
-              setPosts(feed);
+              setPosts(feed.feed);
               addLog(`Feed refreshed. Graph updated.`);
           }
       } catch (e) {
@@ -262,6 +281,13 @@ const App: React.FC = () => {
                  {posts.map(post => (
                     <FeedSlide key={post.id} post={post} onCommentClick={pushCommentAsPost} />
                  ))}
+                 {nextFeedCursor && (
+                    <div className="snap-start flex justify-center p-6 bg-black">
+                        <button onClick={loadMorePosts} disabled={isLoadingMore} className="px-4 py-2 rounded-lg bg-slate-800 text-slate-200 disabled:opacity-50">
+                            {isLoadingMore ? 'Loading...' : 'Load more'}
+                        </button>
+                    </div>
+                 )}
             </div>
         ) : (
           // STANDARD LIST VIEW
@@ -287,6 +313,11 @@ const App: React.FC = () => {
                         />
                     ))}
                 </div>
+                {nextFeedCursor && (
+                    <button onClick={loadMorePosts} disabled={isLoadingMore} className="w-full py-3 rounded-lg bg-slate-800 text-slate-200 disabled:opacity-50">
+                        {isLoadingMore ? 'Loading...' : 'Load more'}
+                    </button>
+                )}
              </div>
           </div>
         )}
