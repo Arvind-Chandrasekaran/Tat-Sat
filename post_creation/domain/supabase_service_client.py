@@ -1,11 +1,12 @@
 import os
 from supabase import acreate_client, AsyncClient
-from dotenv import load_dotenv
 import asyncio
 
+from dotenv import load_dotenv
 load_dotenv()
 
-# shared instance across modules 
+
+# shared instance across modules
 url: str = os.environ.get("SUPABASE_PROJECT_URL")
 key: str = os.environ.get("SUPABASE_SERVICE_KEY")
 
@@ -14,7 +15,7 @@ async def create_supabase():
   return supabase
 
 
-# asyncio.run will block the entire eventloop until this creations happens. We allow this one action to be synchronous. This will happen only once in entire event loop generation. 
+# asyncio.run will block the entire eventloop until this creations happens. We allow this one action to be synchronous. This will happen only once in entire event loop generation.
 supabase_service_client = asyncio.run(create_supabase())
 
 

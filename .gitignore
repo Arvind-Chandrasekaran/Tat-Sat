@@ -62,3 +62,4 @@ auth/credentials.json
 node_modules/
 dist/
 *.local
+.env_load.py

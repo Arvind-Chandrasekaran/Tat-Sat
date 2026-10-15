@@ -1,10 +1,11 @@
-name: CI - Post Creation 
+name: CI - Post Creation
 
 on:
   push:
     branches: [ post_creation_service ]
     paths:
       - 'post_creation/**'
+      - 'post_verifier/**'
       - '.github/workflows/post_creation_ci.yml'
 
 
@@ -41,9 +42,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest 
+          pip install pytest
 
-          
+
       - name: Start API
         env:
           ENV: test
@@ -53,8 +54,7 @@ jobs:
 
         run: |
           nohup uvicorn server:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
-          timeout 30 bash -c 'until curl -sf http://127.0.0.1:8000/api-reference > /dev/null; do sleep 0.5; done'
-
+          timeout 30 bash -c 'until curl -sf http://127.0.0.1:8000/health > /dev/null; do sleep 0.5; done'
 
 
 
@@ -66,7 +66,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-          
+
         run: |
           pytest tests/test_integration/ -v
 
