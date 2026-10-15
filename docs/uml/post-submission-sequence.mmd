@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    participant U as User
+    participant C as Client
+    participant A as Post API
+    participant J as Supabase JWT
+    participant S as Storage
+    participant R as Redis Stream
+
+    U->>C: Compose post
+    C->>A: GET /post-media-urls
+    A->>J: Validate Bearer token
+    J-->>A: user_id
+    A->>S: Create four signed upload URLs
+    S-->>A: Signed URLs and media IDs
+    A-->>C: 200 signed_upload_urls
+    C->>S: Upload selected media
+    C->>A: POST /post
+    A->>J: Validate Bearer token
+    J-->>A: user_id
+    A->>A: Validate text, links, media lists
+    A->>R: XADD serialized request and user_id
+    R-->>A: queue_id
+    A-->>C: 202 queued
+    C-->>U: Show pending submission
+
+    Note over R: Verifier consumption is not yet implemented.

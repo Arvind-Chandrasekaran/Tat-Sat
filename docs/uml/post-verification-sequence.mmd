@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant R as Redis Stream
+    participant W as Verifier Worker
+    participant S as Supabase Storage
+    participant AI as AI Services
+    participant D as Domain Database
+    participant M as Media Verifier
+
+    R-->>W: Read message from post_creation_stream
+    W->>W: Validate payload and deduplicate
+    W->>S: Verify user-scoped media objects
+    alt Invalid or malicious media
+        W->>D: Record rejected result
+        W->>R: ACK / dead-letter
+    else Valid submission
+        W->>AI: Analyze text, topic, embeddings, DQS
+        AI-->>W: Analysis result
+        W->>D: Insert post and media as pending
+        W->>R: ACK
+        W->>M: Enqueue media verification
+        M-->>D: Mark media/post active or rejected
+    end
+
+    Note over W,D: Current repository has the database client scaffold only.

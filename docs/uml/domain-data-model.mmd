@@ -1,0 +1,53 @@
+erDiagram
+    AUTH_USERS ||--|| USERS : maps_to
+    USERS ||--o{ POSTS : creates
+    POSTS ||--o{ POST_MEDIA : contains
+    POSTS ||--o{ POSTS : replies_to
+    POSTS ||--o{ POST_LINKS : source
+    POSTS ||--o{ POST_LINKS : target
+    USERS ||--o{ POST_LINKS_USERS : attributes
+    POST_LINKS ||--o{ POST_LINKS_USERS : receives
+
+    AUTH_USERS {
+        uuid id PK
+    }
+    USERS {
+        uuid id PK
+        varchar username UK
+        varchar status
+        timestamptz created_at
+    }
+    POSTS {
+        uuid id PK
+        uuid user_id FK
+        varchar text
+        text long_text
+        text reference_link
+        uuid parent_post_id FK
+        varchar post_status
+        varchar post_user_visibility
+        jsonb analysis
+        text topic
+        vector embedding
+        vector topic_embedding
+    }
+    POST_MEDIA {
+        uuid id PK
+        uuid post_id FK
+        varchar media_type
+        text storage_path
+        int display_order
+        varchar post_media_status
+    }
+    POST_LINKS {
+        uuid id PK
+        uuid up_post_id FK
+        uuid down_post_id FK
+        int weight
+        int user_count
+    }
+    POST_LINKS_USERS {
+        uuid link_id FK
+        uuid user_id FK
+        timestamptz created_at
+    }

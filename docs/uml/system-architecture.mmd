@@ -1,0 +1,35 @@
+flowchart TB
+    Client[React/Vite client]
+    Auth[Supabase Auth]
+    Proxy[Reverse proxy / rate limiter]
+    API[Post creation FastAPI]
+    Storage[(Supabase Storage)]
+    Redis[(Redis Stream<br/>post_creation_stream)]
+    Verifier[Post verifier worker]
+    AI[AI analysis and embeddings]
+    DB[(Supabase Postgres<br/>domain schema)]
+    Feed[Feed service]
+    Graph[Knowledge graph]
+    GC[Orphan media garbage collector]
+
+    Client --> Proxy
+    Client --> Auth
+    Proxy --> API
+    Client -->|request signed URLs| API
+    API -->|verify JWT| Auth
+    API -->|create signed URLs| Storage
+    Client -->|direct upload| Storage
+    Client -->|submit text and media IDs| API
+    API -->|XADD| Redis
+    Redis -.->|planned consume| Verifier
+    Verifier -.-> AI
+    Verifier -.-> DB
+    Verifier -.-> Storage
+    DB -.-> Feed
+    DB -.-> Graph
+    GC -.-> Storage
+
+    classDef implemented fill:#d1fae5,stroke:#047857,color:#064e3b
+    classDef scaffold fill:#fef3c7,stroke:#b45309,color:#78350f
+    class Client,Auth,API,Storage,Redis,DB implemented
+    class Proxy,Verifier,AI,Feed,Graph,GC scaffold
