@@ -89,14 +89,14 @@ const App: React.FC = () => {
      refresh();
   }, [activeTab, isInitializing, semanticStatus]);
   
-  const handlePostCreate = async (content: string, type: PostType, analysis: AnalysisResult, mediaUrl?: string) => {
+  const handlePostCreate = async (content: string, _type: PostType, _analysis: AnalysisResult, mediaFile?: File) => {
     try {
-        await backend.createPost(content, type, mediaUrl);
-        const feed = await backend.getFeed();
-        setPosts(feed);
+        const queued = await backend.createPost(content, mediaFile);
+        addLog(`Post queued successfully: ${queued.queue_id}`);
         setActiveTab(NavigationTab.FEED);
     } catch(e) {
         addLog(`Post Error: ${e}`);
+        throw e;
     }
   };
 

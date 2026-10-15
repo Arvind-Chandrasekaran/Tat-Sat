@@ -3,7 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Derived from your connection string: 
 // postgres://postgres:...@db.zmvcfdaukpbtimlotaep.supabase.co:5432...
-const PROJECT_URL = 'https://zmvcfdaukpbtimlotaep.supabase.co';
+const PROJECT_URL = import.meta.env.VITE_SUPABASE_URL || 'https://zmvcfdaukpbtimlotaep.supabase.co';
 const STORAGE_KEY = 'tatsat_supabase_key';
 
 // Provided by user
@@ -15,7 +15,7 @@ export const getSupabase = (): SupabaseClient | null => {
   if (supabaseInstance) return supabaseInstance;
 
   // 1. Try Environment Variable, then the Provided Key
-  let key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || PROVIDED_ANON_KEY;
+  let key = import.meta.env.VITE_SUPABASE_ANON_KEY || PROVIDED_ANON_KEY;
   
   // 2. Try Local Storage (Runtime override if needed)
   if (!key && typeof window !== 'undefined') {
@@ -47,3 +47,13 @@ export const saveKeyAndInit = (key: string): boolean => {
 }
 
 export const isSupabaseConfigured = () => !!getSupabase();
+
+export const getAccessToken = async (): Promise<string> => {
+  const client = getSupabase();
+  if (!client) throw new Error('SUPABASE_NOT_CONFIGURED');
+
+  const { data, error } = await client.auth.getSession();
+  if (error) throw new Error(`AUTH_SESSION_ERROR: ${error.message}`);
+  if (!data.session?.access_token) throw new Error('AUTH_REQUIRED');
+  return data.session.access_token;
+};

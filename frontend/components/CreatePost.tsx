@@ -6,7 +6,7 @@ import { AnalysisBadge } from './AnalysisBadge';
 import { Video, Image, X, Sparkles, Send, Loader2 } from 'lucide-react';
 
 interface CreatePostProps {
-  onPostCreate: (content: string, type: PostType, analysis: AnalysisResult, mediaUrl?: string) => Promise<void>;
+  onPostCreate: (content: string, type: PostType, analysis: AnalysisResult, mediaFile?: File) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -17,6 +17,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreate, onCancel }
   const [isPublishing, setIsPublishing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   
   // Debounce analysis (Preview only - actual score is finalized on server)
   useEffect(() => {
@@ -51,10 +52,11 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreate, onCancel }
     if (finalAnalysis && finalAnalysis.score >= 30) {
         setIsPublishing(true);
         try {
-            await onPostCreate(content, postType, finalAnalysis, mediaPreview || undefined);
+            await onPostCreate(content, postType, finalAnalysis, mediaFile || undefined);
             setContent('');
             setAnalysis(null);
             setMediaPreview(null);
+            setMediaFile(null);
         } catch(e) {
             console.error("Failed to publish", e);
         } finally {
@@ -67,6 +69,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreate, onCancel }
     const file = e.target.files?.[0];
     if (file) {
       setPostType(PostType.VIDEO);
+      setMediaFile(file);
       const objectUrl = URL.createObjectURL(file);
       setMediaPreview(objectUrl);
     }
@@ -95,7 +98,7 @@ export const CreatePost: React.FC<CreatePostProps> = ({ onPostCreate, onCancel }
                <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">Video Preview</div>
             </div>
              <button 
-                onClick={() => { setMediaPreview(null); setPostType(PostType.TEXT); }}
+                onClick={() => { setMediaPreview(null); setMediaFile(null); setPostType(PostType.TEXT); }}
                 className="absolute -top-2 -right-2 bg-slate-800 rounded-full p-1 text-slate-400 hover:text-white border border-slate-600"
              >
                 <X size={14} />

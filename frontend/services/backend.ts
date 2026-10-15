@@ -1,146 +1,141 @@
-import { Post, PostType, AnalysisResult, SemanticRelationship } from '../types';
+import { Post, PostType, SemanticRelationship } from '../types';
+import { getAccessToken } from './supabaseClient';
 
 type LogCallback = (msg: string) => void;
+const API_URL = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
 
-// Assuming backend runs on 8000
-const API_URL = 'http://127.0.0.1:8000';
+export interface QueueResponse {
+    status: 'queued';
+    message: string;
+    queue_id: string;
+}
+
+export interface SignedUpload {
+    media_id: string;
+    path: string;
+    signed_url: string;
+    token: string;
+}
 
 class TatSatBackend {
-    
     private logListeners: LogCallback[] = [];
-
-    // Helpers to handle ID Namespacing
-    private toPostId(dbId: string | number) { return `p-${dbId}`; }
-    private toCommentId(dbId: string | number) { return `c-${dbId}`; }
-    private fromId(appId: string) { return appId.split('-')[1]; }
 
     public onLog(callback: LogCallback) {
         this.logListeners.push(callback);
+        return () => {
+            this.logListeners = this.logListeners.filter(listener => listener !== callback);
+        };
     }
 
-    private log(msg: string) {
-        console.log(`[Backend API] ${msg}`);
-        this.logListeners.forEach(cb => cb(msg));
+    private log(message: string) {
+        console.log(`[Backend API] ${message}`);
+        this.logListeners.forEach(callback => callback(message));
     }
 
-    async initialize(onLog?: (msg: string) => void): Promise<void> {
-        if(onLog) this.onLog(onLog);
-        this.log("Connecting to FastAPI Backend...");
-        
-        try {
-            const res = await fetch(`${API_URL}/health`);
-            if (!res.ok) throw new Error("Connection Failed");
-            this.log("Connected successfully to FastAPI backend.");
-        } catch (e) {
-            this.log(`Connection Error: ${e}`);
-            throw new Error("CONNECTION_FAILED");
+    private async request(path: string, init: RequestInit = {}): Promise<Response> {
+        const headers = new Headers(init.headers);
+        headers.set('Accept', 'application/json');
+        const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+        if (!response.ok) {
+            const detail = await response.text();
+            throw new Error(`API_${response.status}: ${detail || response.statusText}`);
         }
+        return response;
+    }
+
+    async initialize(onLog?: LogCallback): Promise<void> {
+        if (onLog) this.onLog(onLog);
+        this.log('Connecting to FastAPI Backend...');
+        await this.request('/health');
+        this.log('Connected successfully to FastAPI backend.');
     }
 
     async getFeed(filter: 'ALL' | 'HIGH_QUALITY' = 'ALL'): Promise<Post[]> {
-        this.log("Fetching Feed...");
-        const res = await fetch(`${API_URL}/feed?filter=${filter}`);
-        if (!res.ok) throw new Error("Failed to fetch feed");
-        const data = await res.json();
-        
-        const posts = (data.feed || []).map((dbPost: any) => this.mapDbPostToType(dbPost));
-        return posts;
+        this.log(`Fetching ${filter === 'HIGH_QUALITY' ? 'high-quality ' : ''}feed...`);
+        const data = await (await this.request(`/feed?filter=${filter}`)).json();
+        return (data.feed || []).map((post: Record<string, any>) => this.mapDbPostToType(post));
     }
 
-    async createPost(content: string, type: PostType, mediaUrl?: string): Promise<void> {
-        this.log("Delegating Post Creation and AI Analysis to Backend...");
-        
-        const res = await fetch(`${API_URL}/post`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                // Dummy JWT for now since the frontend logic hasn't fully updated to proper auth flow
-                // The router expects a bearer token. We will send a mock token that the custom JWTManager might accept, 
-                // but since JWTManager expects a valid token, we might need to bypass it or provide a valid signed token.
-                // Assuming the backend has a way to handle this or we can adjust router if it fails.
-                "Authorization": "Bearer MOCK_TOKEN_FOR_DEV" 
-            },
-            body: JSON.stringify({
-                content,
-                type,
-                media_url: mediaUrl,
-                media_ids: [],
-                media_types: []
-            })
+    async getSignedUploadUrls(): Promise<SignedUpload[]> {
+        const token = await getAccessToken();
+        const data = await (await this.request('/post-media-urls', {
+            headers: { Authorization: `Bearer ${token}` },
+        })).json();
+        return data.signed_upload_urls;
+    }
+
+    async uploadMedia(file: File, signedUpload: SignedUpload): Promise<void> {
+        const response = await fetch(signedUpload.signed_url, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type || 'application/octet-stream' },
+            body: file,
         });
-
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Failed to create post: ${err}`);
+        if (!response.ok) {
+            throw new Error(`MEDIA_UPLOAD_${response.status}: ${await response.text()}`);
         }
-        this.log("Post created and analyzed successfully by backend.");
     }
 
-    async createComment(parentId: string, content: string): Promise<Post> {
-         throw new Error("Not Implemented in this merge iteration.");
+    async createPost(text: string, file?: File): Promise<QueueResponse> {
+        const token = await getAccessToken();
+        let mediaIds: string[] = [];
+        let mediaTypes: string[] = [];
+
+        if (file) {
+            const [signedUpload] = await this.getSignedUploadUrls();
+            await this.uploadMedia(file, signedUpload);
+            mediaIds = [signedUpload.media_id];
+            mediaTypes = [file.type.split('/')[0] || 'image'];
+        }
+
+        this.log('Submitting post for asynchronous verification...');
+        const response = await this.request('/post', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text, media_ids: mediaIds, media_types: mediaTypes }),
+        });
+        const queued = await response.json() as QueueResponse;
+        this.log(`Post queued for verification (${queued.queue_id}).`);
+        return queued;
     }
 
-    async getRelatedPosts(postId: string, mode: 'DISCOVERY' | 'STRICT'): Promise<{post: Post, score: number, relationship?: SemanticRelationship}[]> {
-        // Mocked or fetching from backend
+    async createComment(_parentId: string, _content: string): Promise<Post> {
+        throw new Error('Comments API is not available yet.');
+    }
+
+    async getRelatedPosts(_postId: string, _mode: 'DISCOVERY' | 'STRICT'): Promise<{post: Post, score: number, relationship?: SemanticRelationship}[]> {
         return [];
     }
 
     public async reanalyzeGraph(): Promise<number> {
-        this.log("Reanalyze graph is now a backend responsibility.");
+        this.log('Graph re-analysis is not available yet.');
         return 0;
     }
 
-    private mapDbPostToType(dbPost: any): Post {
-        let emb = dbPost.embedding;
-        if (typeof emb === 'string') {
-            try { emb = JSON.parse(emb); } catch { emb = undefined; }
-        }
-
+    private mapDbPostToType(dbPost: Record<string, any>): Post {
+        const analysis = dbPost.analysis || { score: 0, scores: {}, toulmin: {}, fallacies: [], grice: {}, sentimentIntensity: 0, reasoning: '', suggestion: '', tags: [], constructive: false };
         return {
-            id: this.toPostId(dbPost.id),
+            id: `p-${dbPost.id}`,
             author: {
-                id: dbPost.author_id || 'unknown',
+                id: dbPost.user_id || 'unknown',
                 name: dbPost.author_name || 'Unknown',
                 handle: dbPost.author_handle || 'unknown',
                 avatar: dbPost.author_avatar || 'https://via.placeholder.com/50',
-                reputationScore: dbPost.author_reputation || 50
+                reputationScore: dbPost.author_reputation || 50,
             },
-            content: dbPost.content,
-            type: dbPost.type as PostType,
+            content: dbPost.text || '',
+            type: dbPost.media_type ? PostType.VIDEO : PostType.TEXT,
             mediaUrl: dbPost.media_url,
             thumbnailUrl: dbPost.thumbnail_url,
-            analysis: dbPost.analysis,
+            analysis,
             topic: dbPost.topic,
             timestamp: new Date(dbPost.created_at),
-            likes: dbPost.likes,
-            bookmarks: dbPost.bookmarks,
-            comments: dbPost.comments 
-                ? dbPost.comments.map((c: any) => this.mapDbCommentToType(c)) 
-                : [],
+            likes: dbPost.likes || 0,
+            bookmarks: dbPost.bookmarks || 0,
+            comments: [],
             relatedPostIds: [],
-            embedding: emb || undefined,
-            topicEmbedding: dbPost.topic_embedding || undefined
-        };
-    }
-
-    private mapDbCommentToType(dbComment: any): Post {
-        return {
-            id: this.toCommentId(dbComment.id),
-            parentId: this.toPostId(dbComment.post_id),
-            author: { 
-                id: dbComment.author_id, 
-                name: dbComment.author_name, 
-                handle: dbComment.author_handle, 
-                avatar: dbComment.author_avatar, 
-                reputationScore: 50 
-            },
-            content: dbComment.content,
-            type: PostType.TEXT,
-            timestamp: new Date(dbComment.created_at),
-            analysis: dbComment.analysis,
-            likes: dbComment.likes,
-            bookmarks: 0,
-            comments: [] 
         };
     }
 }

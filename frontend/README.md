@@ -15,8 +15,17 @@ npm install
 npm run dev
 ```
 
-The frontend expects the FastAPI service from `../post_creation/` at
-`http://127.0.0.1:8000`.
+The frontend expects the FastAPI service from [`../post_creation/`](../post_creation/)
+at `http://127.0.0.1:8000`.
+
+Configure runtime endpoints and Supabase browser credentials with Vite
+variables when needed:
+
+```bash
+VITE_API_URL=http://127.0.0.1:8000
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
 
 ## Database setup
 
@@ -29,20 +38,20 @@ database schema. The archived `db/schema.sql` prototype is not supported.
 - Draft-side Gemini analysis and DQS presentation.
 - Post detail discourse/graph tabs and semantic relationship UI.
 - Backend health bootstrap and diagnostic log overlay.
+- Supabase session Bearer authentication.
+- Signed media upload and asynchronous queue submission.
 
 ## Current integration status
 
-The frontend still uses a placeholder authorization header and does not yet
-perform the signed-upload flow. The backend now returns `202 Accepted` after
-placing a post on Redis, while the frontend still expects synchronous post
-completion. These are tracked in the root TODO list and must be resolved
-before the create-post flow is production-ready.
+The frontend uses the active Supabase browser session to send Bearer tokens,
+uploads selected media through the signed-upload flow, and handles the
+backend's `202 Accepted` queue response. The verifier worker must still be
+running for queued posts to become persisted and visible.
 
 ## TODO
 
-- [ ] Use the Supabase browser session and send its access token as Bearer auth.
-- [ ] Request signed media URLs, upload files, and submit media IDs.
-- [ ] Handle the `202 queued` response and show queue/pending status.
-- [ ] Replace placeholder feed, comments, and graph calls with API clients.
-- [ ] Move runtime configuration from hardcoded endpoints to environment
-      variables.
+- [ ] Add a user sign-in/session screen for users without an existing
+      Supabase session.
+- [ ] Replace placeholder comments and graph calls with API clients.
+- [ ] Add post-status polling or realtime updates after queue submission.
+- [ ] Move any remaining runtime configuration to environment variables.

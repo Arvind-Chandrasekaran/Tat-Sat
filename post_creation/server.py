@@ -1,10 +1,25 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from network.router import router
 import uvicorn
 
 app = FastAPI(
         title="Post Creation Service",
         docs_url="/api-reference")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
+        "null",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(router)
 
@@ -23,4 +38,3 @@ if __name__ == "__main__":
 
 
 """
-

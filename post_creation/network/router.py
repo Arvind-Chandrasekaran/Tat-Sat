@@ -17,12 +17,38 @@ from security.jwt_client import JWTClient, InvalidJWTError, JWTVerifierError
 # domain
 from domain.object_storage_client import object_storage_client
 from domain.post_creation_messaging_queue_client import post_creation_messaging_queue_client
+from domain.supabase_service_client import supabase_service_client
 
 
 
 
 
 router = APIRouter()
+
+
+@router.get(
+    "/feed",
+    tags=["Feed"],
+    description="Returns visible active posts for the frontend feed.",
+)
+async def feed(filter: str = "ALL"):
+    query = (
+        supabase_service_client
+        .schema("domain")
+        .table("posts")
+        .select("*")
+        .eq("post_status", "active")
+        .order("created_at", desc=True)
+        .limit(50)
+    )
+    response = await query.execute()
+    posts = response.data or []
+    if filter == "HIGH_QUALITY":
+        posts = [
+            post for post in posts
+            if int((post.get("analysis") or {}).get("score", 0)) > 50
+        ]
+    return {"feed": posts}
 
 
 

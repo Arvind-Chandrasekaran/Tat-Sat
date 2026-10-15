@@ -77,7 +77,8 @@ sequenceDiagram
 
 ## Environment
 
-Required values are loaded through `python-dotenv`:
+Copy [`.env.example`](.env.example) to `.env`. Required values are loaded
+through `python-dotenv`:
 
 - `SUPABASE_PROJECT_URL`
 - `SUPABASE_SERVICE_KEY`
