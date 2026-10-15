@@ -38,8 +38,6 @@ Implemented:
 
 Not yet implemented:
 
-- Consumer groups.
-- Explicit acknowledgements.
 - Pending-entry recovery.
 - Retry and dead-letter streams.
 - Queue depth and lag monitoring.
@@ -62,7 +60,7 @@ stateDiagram-v2
 ## TODO
 
 - [ ] Define a durable consumer-group name and configure it per environment.
-- [ ] Replace the helper's `XREAD`/`XDEL` prototype with `XREADGROUP` and
+- [x] Replace the verifier helper's `XREAD` prototype with `XREADGROUP` and
       `XACK`.
 - [ ] Add bounded retries and a dead-letter stream.
 - [ ] Add queue metrics and operational runbooks.
