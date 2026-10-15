@@ -53,3 +53,12 @@ __pycache__/
 # Login Credentials
 # ==========================================
 auth/credentials.json
+
+
+
+# ==========================================
+# Node.js frontend
+# ==========================================
+node_modules/
+dist/
+*.local

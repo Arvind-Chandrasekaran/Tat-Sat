@@ -57,7 +57,7 @@ const App: React.FC = () => {
                 setErrorDetails({ type: "INVALID_KEY", msg: "The provided API Key is invalid or expired." });
             }
             else if (e.message === "MISSING_TABLES") {
-                setErrorDetails({ type: "MISSING_TABLES", msg: "Database tables not found. Did you run the schema.sql?" });
+                setErrorDetails({ type: "MISSING_TABLES", msg: "Database tables not found. Did you run schema_unified.sql from the project root?" });
             }
             else {
                 setErrorDetails({ type: "CONNECTION_FAILED", msg: e.message || "Connection Failed" });
@@ -181,7 +181,7 @@ const App: React.FC = () => {
                   {errorDetails?.type === "MISSING_TABLES" && (
                       <div className="mb-6 bg-amber-950/30 p-4 rounded-lg border border-amber-900/50">
                           <h4 className="text-amber-500 font-bold text-sm mb-2">Schema Required</h4>
-                          <p className="text-xs text-amber-200 mb-2">The database exists but is empty. Please copy the code from <code>db/schema.sql</code> and run it in the Supabase SQL Editor.</p>
+                          <p className="text-xs text-amber-200 mb-2">The database exists but is empty. Please run <code>schema_unified.sql</code> from the project root in the Supabase SQL Editor.</p>
                       </div>
                   )}
 

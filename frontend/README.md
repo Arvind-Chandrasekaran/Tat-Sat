@@ -2,19 +2,23 @@
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# TatSat frontend
 
-This contains everything you need to run your app locally.
+This is the canonical TatSat frontend. The project root is the parent
+directory, [`../`](../), which also contains the FastAPI service, tests, and
+the canonical database schema.
 
-View your app in AI Studio: https://ai.studio/apps/b39a6ea6-d1bc-4691-b764-21bda696b133
+## Run locally
 
-## Run Locally
+```bash
+npm install
+npm run dev
+```
 
-**Prerequisites:**  Node.js
+The frontend expects the FastAPI service from `../post_creation/` at
+`http://127.0.0.1:8000`.
 
+## Database setup
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Use [`../schema_unified.sql`](../schema_unified.sql) as the only active
+database schema. The archived `db/schema.sql` prototype is not supported.
