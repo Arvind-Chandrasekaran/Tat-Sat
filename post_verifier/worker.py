@@ -8,19 +8,15 @@ import sys
 import uuid
 
 
-# from client import PostVerifierMessagingQueueClient
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] [%(name)s]: %(message)s",
-)
-logger = logging.getLogger("worker")
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+
+
 NUM_CONCURRENT_WORKERS = int(os.getenv("CONCURRENT_WORKERS", "3"))
 
 # Graceful shutdown event
 shutdown_event = asyncio.Event()
+
 
 
 async def process_and_persist(user_id: str, request_body: dict) -> None:

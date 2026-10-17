@@ -1,9 +1,10 @@
+import os
 from redis.asyncio import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 import logging
 from typing import Any, Callable, Coroutine
 import uuid 
-
+import asyncio
 
 
 
@@ -11,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 load_dotenv()
+
 
 
 class PostVerifierMessagingQueueClient:
@@ -22,17 +24,10 @@ class PostVerifierMessagingQueueClient:
         self.consumer_name = str(uuid.uuid4().hex[:6])
         
         self._redis_client = Redis.from_url(redis_url, decode_responses=True)
-        
 
-
-    @classmethod  
-    async def create(cls, redis_url: str, stream_name: str = "post_creation_stream", consumer_group: str = "post_verifier_consumer_group"):
+        # Create a consumer if not already there 
+        asycnio.run(self._create_consumer_group())
         
-        self = cls(redis_url, stream_name, consumer_group)
-        await self._create_consumer_group()
-        
-        return self
-
 
         
     async def _create_consumer_group(self) -> None:
@@ -76,7 +71,7 @@ class PostVerifierMessagingQueueClient:
 
 
 
-    async def get_next_post(self, block_ms: int = 2000,) :
+    async def get_next_post(self, block_ms: int = 2000) :
         """
         Pulls the next unconsumed message ('>') for this consumer group.
         """
@@ -108,9 +103,20 @@ class PostVerifierMessagingQueueClient:
 
 
 
+async def main():
+
+    redis_url = os.environ.get("REDIS_URL")
+    
+    post_verifier_messaging_queue_client = await PostVerifierMessagingQueueClient.create(redis_url)
+
+    post = await post_verifier_messaging_queue_client.get_next_post()
+    print("post : ", post[0][1][0][0])
+    await post_verifier_messaging_queue_client.ack_del_post(post[0][1][0][0])
 
 
-redis_url = os.environ.get("REDIS_URL")
-post_verifier_messaging_queue_client = PostVerifierMessagingQueueClient.create(redis_url)
+asyncio.run(main())
+
+
+
 
 
