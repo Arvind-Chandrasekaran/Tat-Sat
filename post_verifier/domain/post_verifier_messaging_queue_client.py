@@ -19,14 +19,16 @@ class PostVerifierMessagingQueueClient:
 
 
     def __init__(self, redis_url: str, stream_name: str = "post_creation_stream", consumer_group: str = "post_verifier_consumer_group"):
+
+
         self.stream_name = stream_name
         self.consumer_group = consumer_group
         self.consumer_name = str(uuid.uuid4().hex[:6])
         
         self._redis_client = Redis.from_url(redis_url, decode_responses=True)
 
-        # Create a consumer if not already there 
-        asycnio.run(self._create_consumer_group())
+        # Do not Create a consumer here do it inside the event loop where other io calls will be made to ensure that the connection created for this call does not close after the event loop
+        # asyncio.run(self._create_consumer_group())
         
 
         
@@ -64,8 +66,6 @@ class PostVerifierMessagingQueueClient:
 
 
 
-    async def close(self) -> None:
-        await self._redis_client.aclose()
 
 
 
@@ -101,22 +101,26 @@ class PostVerifierMessagingQueueClient:
 
 
 
+    async def close_client(self) -> None:
+        # free tcp socket in system for other processes 
+        await self._redis_client.aclose()
 
 
-async def main():
 
-    redis_url = os.environ.get("REDIS_URL")
+
+
+
+
+
+redis_url = os.environ.get("REDIS_URL")
     
-    post_verifier_messaging_queue_client = await PostVerifierMessagingQueueClient.create(redis_url)
+post_verifier_messaging_queue_client = PostVerifierMessagingQueueClient(redis_url)
 
+
+async def main(): 
     post = await post_verifier_messaging_queue_client.get_next_post()
-    print("post : ", post[0][1][0][0])
-    await post_verifier_messaging_queue_client.ack_del_post(post[0][1][0][0])
-
+    print(post)
 
 asyncio.run(main())
-
-
-
 
 

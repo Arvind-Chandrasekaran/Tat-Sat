@@ -30,5 +30,5 @@ class WorkerClient:
 
 
 worker_client = WorkerClient(post_verifier_messaging_queue_client)
-asyncio.run(worker_client.run())
+
 
