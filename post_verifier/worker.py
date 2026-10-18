@@ -14,19 +14,24 @@ async def main() -> None:
     try:
 
         # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
+        print("Consumer group check started.")
         await post_verifier_messaging_queue_client.create_consumer_group()
 
+        
+        print("Worker loop started.")
         while True:
 
             try:
                 # Current get_next_post return order:
                 # (request_body_dict, user_id, message_id)
+                print("Post requested from messaging queue client.")
                 post = await post_verifier_messaging_queue_client.get_next_post()
 
                 if post is None:
                     continue
 
-                request_body_data, user_id, message_id = post
+                request_body, user_id, message_id = post
+                print("Post received.", request_body, user_id, message_id)
 
             except asyncio.CancelledError:
                 raise
@@ -35,7 +40,6 @@ async def main() -> None:
                 # A failed fetch usually has no known message ID.
                 print("Redis fetch failed; message_id=unknown")
                 logger.exception("Failed to fetch a post from Redis")
-                await asyncio.sleep(1)
                 continue
 
 
@@ -43,13 +47,18 @@ async def main() -> None:
 
             try:
 
+
                 await database_client.insert(
                     request_body=request_body,
                     user_id=user_id,
                 )
 
+                print("Database Insert. Done")
+
                 # Acknowledge only after the database insert succeeds.
                 await post_verifier_messaging_queue_client.ack_del_post(message_id)
+
+                print("ack and delete for messaging queue done.")
 
 
             except asyncio.CancelledError:
@@ -62,14 +71,21 @@ async def main() -> None:
                 )
                 await asyncio.sleep(1)
                 continue
+    
+    except:
+        await post_verifier_messaging_queue_client.close_client()
+        print("messaging queue client closed.")
+        print("worker ends")
 
-    await post_verifier_messaging_queue_client.close_client()
+
+    finally:
+        await post_verifier_messaging_queue_client.close_client()
+        print("messaging queue client closed.")
+        print("worker ends")
 
 
 
 
 if __name__ == "__main__":
-
-
     asyncio.run(main())
     

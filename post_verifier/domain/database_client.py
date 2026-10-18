@@ -49,6 +49,7 @@ class DatabaseClient:
 		
 		except:
 			print("Database entry formatter error.")
+			raise 
 
 
 
@@ -67,6 +68,7 @@ class DatabaseClient:
 		except Exception as e:
 			# Log the exact error details from PostgREST / Supabase
 			print(f"PostgREST Error Details: {e}")
+			raise 
 		
 		
 
@@ -100,6 +102,7 @@ class DatabaseClient:
 		
 		except: 
 			print(" insert post media error")
+			raise 
 
 
 
@@ -128,4 +131,3 @@ class DatabaseClient:
 
 # Shared stateless instance for route handlers.
 database_client = DatabaseClient()
-database_client.insert()

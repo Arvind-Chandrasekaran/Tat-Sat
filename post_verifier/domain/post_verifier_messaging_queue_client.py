@@ -22,7 +22,7 @@ class PostVerifierMessagingQueueClient:
         self.consumer_group = consumer_group
         self.consumer_name = str(uuid.uuid4().hex[:6])
         
-        self._redis_client = Redis.from_url(redis_url, decode_responses=True)
+        self._redis_client = Redis.from_url(redis_url, decode_responses=True, socket_timeout=None)
 
         # Do not create the consumer group here; do it inside the event loop where other fetch and delete calls will be made to ensure that the connection created for this call does not close after the event loop
         # asyncio.run(self._create_consumer_group())
@@ -67,7 +67,7 @@ class PostVerifierMessagingQueueClient:
 
 
 
-    async def get_next_post(self, block_ms: int = 2000):
+    async def get_next_post(self, block_ms: int = 0): # 0 means wait indefinately
         """
         Returns (request_body, user_id, message_id), or None if no entry arrives.
         """
@@ -84,13 +84,13 @@ class PostVerifierMessagingQueueClient:
         except:
             print("Get next post, Redis Client Request Error")
             raise 
-            
+
+
+
 
 
         if not entries:
             return None
-
-
 
 
         # XREADGROUP returns [(stream, [(message_id, fields)])].
@@ -133,7 +133,7 @@ class PostVerifierMessagingQueueClient:
             await pipe.execute()
         
         except:
-            print("acl del post")
+            print("ack del post")
             raise 
 
 
