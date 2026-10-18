@@ -12,10 +12,12 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
 
     try:
-        # Consumer Group Created 
+
+        # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
         await post_verifier_messaging_queue_client.create_consumer_group()
 
         while True:
+
             try:
                 # Current get_next_post return order:
                 # (request_body_dict, user_id, message_id)
@@ -28,12 +30,17 @@ async def main() -> None:
 
             except asyncio.CancelledError:
                 raise
+            
             except Exception:
                 # A failed fetch usually has no known message ID.
                 print("Redis fetch failed; message_id=unknown")
                 logger.exception("Failed to fetch a post from Redis")
                 await asyncio.sleep(1)
                 continue
+
+
+
+
 
             try:
                 request_body = Post_RequestBody.model_validate(request_body_data)
@@ -46,8 +53,10 @@ async def main() -> None:
                 # Acknowledge only after the database insert succeeds.
                 await post_verifier_messaging_queue_client.ack_del_post(message_id)
 
+
             except asyncio.CancelledError:
                 raise
+
             except Exception:
                 print(f"Post processing failed; message_id={message_id}")
                 logger.exception(
@@ -56,14 +65,15 @@ async def main() -> None:
                 await asyncio.sleep(1)
                 continue
 
-    finally:
-        await post_verifier_messaging_queue_client.close_client()
+    await post_verifier_messaging_queue_client.close_client()
+
+
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
 
     try:
         asyncio.run(main())
+    
     except KeyboardInterrupt:
         print("Worker stopped")
