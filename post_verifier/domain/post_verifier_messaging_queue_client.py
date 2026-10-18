@@ -18,7 +18,6 @@ class PostVerifierMessagingQueueClient:
 
     def __init__(self, redis_url: str, stream_name: str = "post_creation_stream", consumer_group: str = "post_verifier_consumer_group"):
 
-
         self.stream_name = stream_name
         self.consumer_group = consumer_group
         self.consumer_name = str(uuid.uuid4().hex[:6])
@@ -30,7 +29,7 @@ class PostVerifierMessagingQueueClient:
         
 
         
-    async def _create_consumer_group(self) -> None:
+    async def create_consumer_group(self) -> None:
 
         """
         Idempotently ensures the consumer group exists.
