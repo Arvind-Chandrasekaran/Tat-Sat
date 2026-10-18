@@ -1,14 +1,9 @@
-import os
 from redis.asyncio import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
-import logging
-from typing import Any, Callable, Coroutine
+
 import uuid 
 import asyncio
-
-
-
-logger = logging.getLogger(__name__)
+import os
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -53,7 +48,7 @@ class PostVerifierMessagingQueueClient:
                 mkstream=True,  # Auto-creates stream if empty
             )
         
-            logger.info(f"Created consumer group '{self.consumer_group}' on stream '{self.stream_name}'")
+
 
 
         except ResponseError as exc:
@@ -102,7 +97,10 @@ class PostVerifierMessagingQueueClient:
 
 
     async def close_client(self) -> None:
-        # free tcp socket in system for other processes 
+        """
+        Frees tcp socket in system for other processes to use the socket resource.
+        Make sure do it before event loop closes.
+        """
         await self._redis_client.aclose()
 
 
@@ -112,15 +110,9 @@ class PostVerifierMessagingQueueClient:
 
 
 
-redis_url = os.environ.get("REDIS_URL")
-    
+redis_url = os.environ.get("REDIS_URL")  
 post_verifier_messaging_queue_client = PostVerifierMessagingQueueClient(redis_url)
 
 
-async def main(): 
-    post = await post_verifier_messaging_queue_client.get_next_post()
-    print(post)
-
-asyncio.run(main())
 
 
