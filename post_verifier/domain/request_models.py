@@ -1,0 +1,60 @@
+"""
+Request schema/model or format in which request is to be given to each end-point
+"""
+
+from pydantic import BaseModel, HttpUrl, Field, model_validator
+from enum import Enum
+
+
+
+class PostUserVisibilityType(Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+
+
+
+class PostStatus(Enum):
+    ACTIVE = "active"
+    PENDING = "pending"
+    REJECTED = "rejected"
+    DELETED = "deleted"
+
+
+class MediaType(Enum):
+    IMAGE = "image"
+    VIDEO = "video"
+    AUDIO = "audio"
+
+
+
+
+class Post_RequestBody(BaseModel):
+
+    """
+    Pydantic class represents the request body of the /post end-point's reqeuest. 
+    This class's instance will be used as parameter in fastAPI and pydantic instance will be created.
+    This pydantic class instance is better than a dictionary. As it will not give key error for the optinal value if they are omitted. 
+    If the optional key value is omitted, the object will give the default value specified after '='. 
+    """
+
+    # Required
+    text: str = Field(min_length=1, max_length=288)
+
+
+    # Optional: client can omit these entirely
+    long_text : str | None = Field(default=None, max_length=10_000, min_length = 1)
+    media_ids: list[str] = Field(default_factory=list, max_length=4)
+    media_types : list[MediaType] = Field(default_factory=list, max_length=4)
+    external_link: HttpUrl | None = None
+    parent_post_id: str | None = None
+    post_user_visibility : PostUserVisibilityType = PostUserVisibilityType.PUBLIC    # default value is given still better to make it compulsory for this info to come in from client.  
+
+
+    @model_validator(mode="after")
+    def validate_media_lists(self):
+
+        if len(self.media_ids) != len(self.media_types):
+            raise ValueError("media_types length must match media_ids length")
+
+        return self
+

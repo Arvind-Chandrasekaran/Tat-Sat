@@ -15,10 +15,10 @@ async def create_supabase():
   return supabase
 
 
-# asyncio.run will create a new event loop, for the async function / coroutine and block the main thread until the coroutine comes to an end. 
+# asyncio.run will create a new event loop for the task / async function and will end the event loop when the only task comes to an end. 
 # Here it basically makes the client creation synchronous.  
 # This will happen only once in entire event loop generation.
-# Note that a normal client will connect to the event loop, it means its socket will be  
+# Note that a normal client will connect to the event loop, it means its socket will be created inside the event loop and deleted once the event loop is over. But supabase client is an httpx client so it make the socket not be event loop scoped.
 supabase_service_client = asyncio.run(create_supabase())
 
 

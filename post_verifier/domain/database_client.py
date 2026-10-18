@@ -1,17 +1,19 @@
-from fastapi import HTTPException, status
-
+import domain.request_models as request_models
 from domain.supabase_service_client import supabase_service_client
 
-import network.request_models as request_models
 
-from uuid import uuid4
 
 
 class DatabaseClient:
 	def __init__(self):
 		self._supabase_service_client = supabase_service_client
 
+	def _request_body_formatter(self, request_body):
+		return request_models.Post_RequestBody.model_validate(request_body)
+
+
 	def _post_database_entry_formatter(self, request_body: request_models.Post_RequestBody, user_id: str):
+
 		"""
 		database entry format
 
@@ -28,10 +30,9 @@ class DatabaseClient:
 		└── post_user_visibility - public, private
 		"""
 
-		post_id = str(uuid4())
 		post_status = request_models.PostStatus.PENDING.value
 
-		database_entry = {
+		post_database_entry = {
 			"user_id": user_id,
 			"text": request_body.text,
 			"long_text": request_body.long_text,
@@ -41,7 +42,7 @@ class DatabaseClient:
 			"post_user_visibility": request_body.post_user_visibility.value,
 		}
 
-		return database_entry
+		return post_database_entry
 
 
 
@@ -60,21 +61,8 @@ class DatabaseClient:
 		except Exception as e:
 			# Log the exact error details from PostgREST / Supabase
 			print(f"PostgREST Error Details: {e}")
-
-			error_payload = e 
-			message = str(error_payload.message).lower()			
-			
-			if "posts_text_length_check" in message :
-				raise HTTPException(
-					status_code=status.HTTP_400_BAD_REQUEST,
-					detail="Text limit exceeded."
-				)
-
-			raise HTTPException(
-				status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-				detail="Failed to create enrty in the database."
-			)
-
+		
+		
 
 
 
@@ -103,8 +91,9 @@ class DatabaseClient:
 		return response
 
 
-	async def insert(self, request_body: request_models.Post_RequestBody, user_id: str):
+	async def insert(self, request_body, user_id: str):
 
+		request_body = self._request_body_formatter(request_body)
 		post_database_entry = self._post_database_entry_formatter(request_body, user_id)
 		response = await self._insert_post(post_database_entry)
 
