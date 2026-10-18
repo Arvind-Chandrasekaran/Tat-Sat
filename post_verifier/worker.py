@@ -41,9 +41,7 @@ async def main() -> None:
 
 
 
-
             try:
-                request_body = Post_RequestBody.model_validate(request_body_data)
 
                 await database_client.insert(
                     request_body=request_body,
@@ -72,8 +70,6 @@ async def main() -> None:
 
 if __name__ == "__main__":
 
-    try:
-        asyncio.run(main())
+
+    asyncio.run(main())
     
-    except KeyboardInterrupt:
-        print("Worker stopped")

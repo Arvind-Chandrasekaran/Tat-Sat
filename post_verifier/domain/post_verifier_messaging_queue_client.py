@@ -81,8 +81,9 @@ class PostVerifierMessagingQueueClient:
                 block=block_ms,
             )
         
-        except as e:
-            print("Get next post, Redis Client Request Error", e)
+        except:
+            print("Get next post, Redis Client Request Error")
+            raise 
             
 
 
@@ -131,8 +132,9 @@ class PostVerifierMessagingQueueClient:
             pipe.xdel(self.stream_name, message_id)
             await pipe.execute()
         
-        except as e:
-            print("error", e)
+        except:
+            print("acl del post")
+            raise 
 
 
 
@@ -145,8 +147,9 @@ class PostVerifierMessagingQueueClient:
         try:
             await self._redis_client.aclose()
         
-        except as e:
+        except:
             print("redis client request error.")
+            raise 
 
 
 
