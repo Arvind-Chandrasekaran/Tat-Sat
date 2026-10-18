@@ -33,7 +33,7 @@ class DatabaseClient:
 
 
 		try: 
-			post_status = request_models.PostStatus.PENDING.value
+			post_status = request_models.PostStatus.ACTIVE.value
 
 			post_database_entry = {
 				"user_id": user_id,
@@ -66,9 +66,9 @@ class DatabaseClient:
 			return response
 		
 		except Exception as e:
-			# Log the exact error details from PostgREST / Supabase
-			print(f"PostgREST Error Details: {e}")
+			print("Database Post insert error", e)
 			raise 
+
 		
 		
 
@@ -100,8 +100,8 @@ class DatabaseClient:
 			)
 			return response
 		
-		except: 
-			print(" insert post media error")
+		except Exception as e: 
+			print("Database post media insert error", e)
 			raise 
 
 

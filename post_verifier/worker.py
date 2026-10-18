@@ -28,6 +28,7 @@ async def main() -> None:
                 post = await post_verifier_messaging_queue_client.get_next_post()
 
                 if post is None:
+                    print("Post is None")
                     continue
 
                 request_body, user_id, message_id = post
@@ -47,7 +48,6 @@ async def main() -> None:
 
             try:
 
-
                 await database_client.insert(
                     request_body=request_body,
                     user_id=user_id,
@@ -55,22 +55,22 @@ async def main() -> None:
 
                 print("Database Insert. Done")
 
-                # Acknowledge only after the database insert succeeds.
-                await post_verifier_messaging_queue_client.ack_del_post(message_id)
-
-                print("ack and delete for messaging queue done.")
-
 
             except asyncio.CancelledError:
                 raise
 
             except Exception:
-                print(f"Post processing failed; message_id={message_id}")
-                logger.exception(
-                    "Verification, database insert, or Redis acknowledgement failed"
-                )
+                print(f"Post insert failed, could be because post is malformed or service unavailable; message_id={message_id}")
+                # make sure to have malformed post check better in verifier step so that here only service unavailable ones come.
                 await asyncio.sleep(1)
                 continue
+
+            # Acknowledge only after the database insert succeeds.
+            await post_verifier_messaging_queue_client.ack_del_post(message_id)
+
+            print("ack and delete for messaging queue done.")
+
+
     
     except:
         await post_verifier_messaging_queue_client.close_client()
