@@ -9,10 +9,6 @@ class DatabaseClient:
 		self._supabase_service_client = supabase_service_client
 
 	def _request_body_formatter(self, request_body):
-		return request_models.Post_RequestBody.model_validate(request_body)
-
-
-	def _post_database_entry_formatter(self, request_body: request_models.Post_RequestBody, user_id: str):
 
 		"""
 		database entry format
@@ -21,8 +17,8 @@ class DatabaseClient:
 		├── user_id - fk domain.users.id
 		├── text
 		├── long_text
-		├── media_ids (we ignore this)
-		├── media_types (we ignore this)
+		├── media_ids 
+		├── media_types
 		├── external_link
 		├── parent_id - fk application.posts.id
 		├── created_at
@@ -30,19 +26,29 @@ class DatabaseClient:
 		└── post_user_visibility - public, private
 		"""
 
-		post_status = request_models.PostStatus.PENDING.value
+		return request_models.Post_RequestBody.model_validate(request_body)
 
-		post_database_entry = {
-			"user_id": user_id,
-			"text": request_body.text,
-			"long_text": request_body.long_text,
-			"external_link": str(request_body.external_link) if request_body.external_link else None,
-			"parent_post_id": request_body.parent_post_id,
-			"post_status": post_status,
-			"post_user_visibility": request_body.post_user_visibility.value,
-		}
 
-		return post_database_entry
+	def _post_database_entry_formatter(self, request_body: request_models.Post_RequestBody, user_id: str):
+
+
+		try: 
+			post_status = request_models.PostStatus.PENDING.value
+
+			post_database_entry = {
+				"user_id": user_id,
+				"text": request_body.text,
+				"long_text": request_body.long_text,
+				"external_link": str(request_body.external_link) if request_body.external_link else None,
+				"parent_post_id": request_body.parent_post_id,
+				"post_status": post_status,
+				"post_user_visibility": request_body.post_user_visibility.value,
+			}
+
+			return post_database_entry
+		
+		except:
+			print("Database entry formatter error.")
 
 
 
@@ -67,28 +73,34 @@ class DatabaseClient:
 
 
 	async def _insert_post_media(self, post_id: str, media_ids: list[str], media_types: list[str], user_id: str):
-		if not media_ids:
-			return []
 
-		post_media_rows = [
-			{
-				"post_id": post_id,
-				"media_type": media_type.value,
-				"storage_path": f"{user_id}/{media_id}",
-				"display_order": index+1,
-				"post_media_status": "pending",
-			}
-			for index, (media_id, media_type) in enumerate(zip(media_ids, media_types))
-		]
+		try :
+			if not media_ids:
+				return []
 
-		response = await (
-			self._supabase_service_client
-			.schema("domain")
-			.table("post_media")
-			.insert(post_media_rows)
-			.execute()
-		)
-		return response
+			post_media_rows = [
+				{
+					"post_id": post_id,
+					"media_type": media_type.value,
+					"storage_path": f"{user_id}/{media_id}",
+					"display_order": index+1,
+					"post_media_status": "pending",
+				}
+				for index, (media_id, media_type) in enumerate(zip(media_ids, media_types))
+			]
+
+			response = await (
+				self._supabase_service_client
+				.schema("domain")
+				.table("post_media")
+				.insert(post_media_rows)
+				.execute()
+			)
+			return response
+		
+		except: 
+			print(" insert post media error")
+
 
 
 	async def insert(self, request_body, user_id: str):
@@ -116,3 +128,4 @@ class DatabaseClient:
 
 # Shared stateless instance for route handlers.
 database_client = DatabaseClient()
+database_client.insert()

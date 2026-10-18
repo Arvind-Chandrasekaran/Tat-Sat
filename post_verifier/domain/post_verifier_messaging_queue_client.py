@@ -53,7 +53,6 @@ class PostVerifierMessagingQueueClient:
         
 
 
-
         except ResponseError as exc:
 
             if "BUSYGROUP" in str(exc):
@@ -86,11 +85,17 @@ class PostVerifierMessagingQueueClient:
         except as e:
             print("Get next post, Redis Client Request Error", e)
             
+
+
         if not entries:
             return None
 
+
+
+
         # XREADGROUP returns [(stream, [(message_id, fields)])].
         _stream_name, messages = entries[0]
+
         if not messages:
             return None
 
