@@ -40,7 +40,6 @@ async def main() -> None:
             except Exception:
                 # A failed fetch usually has no known message ID.
                 print("Redis fetch failed; message_id=unknown")
-                logger.exception("Failed to fetch a post from Redis")
                 continue
 
 
@@ -62,13 +61,13 @@ async def main() -> None:
             except Exception:
                 print(f"Post insert failed, could be because post is malformed or service unavailable; message_id={message_id}")
                 # make sure to have malformed post check better in verifier step so that here only service unavailable ones come.
-                await asyncio.sleep(1)
                 continue
 
             # Acknowledge only after the database insert succeeds.
             await post_verifier_messaging_queue_client.ack_del_post(message_id)
-
             print("ack and delete for messaging queue done.")
+            # if it fails then the same post be appended again, so to solve this make database insertion idempotent (by adding unique messaging queue column and that must be tested in verifier) or have a local storage for un ack message queue ids.
+                
 
 
     
