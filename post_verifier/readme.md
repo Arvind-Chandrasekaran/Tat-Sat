@@ -6,9 +6,12 @@ Rogue Client Security Compromise
 
 
 Post Issues 
-1. Malformed Post - Parent Post ID does not exist 
+1. Malformed Post - Basically must follow the database insert rules - unique, primary key, foreign key, datatypes, not null etc must be followed. 
+        - Parent Post ID does not exist in the table.
+
+        - Messaging queue id - unique and not already present in the database. It means this post was inserted but not acknowledged. 
+
 2. URL - URL is malicious website 
-3. Messaging queue id - unique and not already present in the database. It means this post was inserted but not acknowledged. 
 
 
 Media Issues 
