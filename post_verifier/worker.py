@@ -29,6 +29,7 @@ async def main() -> None:
                 post = await post_verifier_messaging_queue_client.get_next_post()
 
                 if post is None:
+                    # This case will not reached unless we start polling. 
                     print("Post is None")
                     continue
 
@@ -43,7 +44,7 @@ async def main() -> None:
                 print("Redis fetch failed; message_id=unknown")
                 continue
 
-            print("Post Request Success.")
+     
 
 
             try:
@@ -73,6 +74,7 @@ async def main() -> None:
             except Exception as e:
                 print("redis ack and delete failed.")
                 continue 
+                # these posts not be re inserted
 
 
     
