@@ -29,7 +29,7 @@ class DatabaseClient:
 		return request_models.Post_RequestBody.model_validate(request_body)
 
 
-	def _post_database_entry_formatter(self, request_body: request_models.Post_RequestBody, user_id: str):
+	def _post_database_entry_formatter(self, request_body: request_models.Post_RequestBody, user_id: str, messaging_queue_name : str, messaging_queue_post_id : str):
 
 
 		try: 
@@ -43,6 +43,9 @@ class DatabaseClient:
 				"parent_post_id": request_body.parent_post_id,
 				"post_status": post_status,
 				"post_user_visibility": request_body.post_user_visibility.value,
+				"messaging_queue_name" : messaging_queue_name,
+				"messaging_queue_id" : messaging_queue_id
+
 			}
 
 			return post_database_entry
@@ -106,10 +109,10 @@ class DatabaseClient:
 
 
 
-	async def insert(self, request_body, user_id: str):
+	async def insert(self, request_body, user_id: str, messaging_queue_name : str, messaging_queue_post_id : str):
 
 		request_body = self._request_body_formatter(request_body)
-		post_database_entry = self._post_database_entry_formatter(request_body, user_id)
+		post_database_entry = self._post_database_entry_formatter(request_body, user_id, messaging_queue_name, messaging_queue_post_id)
 		response = await self._insert_post(post_database_entry)
 
 		post_id = None

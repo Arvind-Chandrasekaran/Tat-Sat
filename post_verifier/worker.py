@@ -28,10 +28,6 @@ async def main() -> None:
                 print("Post requested from messaging queue client.")
                 post = await post_verifier_messaging_queue_client.get_next_post()
 
-                if post is None:
-                    # This case will not reached unless we start polling. 
-                    print("Post is None")
-                    continue
 
                 request_body, user_id, message_id = post
                 print("Post received.", request_body, user_id, message_id)
@@ -52,6 +48,9 @@ async def main() -> None:
                 await database_client.insert(
                     request_body=request_body,
                     user_id=user_id,
+                    messaging_queue_name=post_verifier_messaging_queue_client.consumer_group,
+                    messaging_queue_post_id=message_id
+
                 )
 
                 print("Database Insert. Done")
