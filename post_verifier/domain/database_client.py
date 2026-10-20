@@ -44,7 +44,7 @@ class DatabaseClient:
 				"post_status": post_status,
 				"post_user_visibility": request_body.post_user_visibility.value,
 				"messaging_queue_name" : messaging_queue_name,
-				"messaging_queue_id" : messaging_queue_id
+				"messaging_queue_post_id" : messaging_queue_post_id
 
 			}
 

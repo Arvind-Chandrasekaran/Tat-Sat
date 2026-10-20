@@ -48,8 +48,8 @@ async def main() -> None:
                 await database_client.insert(
                     request_body=request_body,
                     user_id=user_id,
-                    messaging_queue_name=post_verifier_messaging_queue_client.consumer_group,
-                    messaging_queue_post_id=message_id
+                    messaging_queue_name=str(post_verifier_messaging_queue_client.stream_name),
+                    messaging_queue_post_id="str(message_id)"
 
                 )
 

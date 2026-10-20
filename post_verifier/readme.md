@@ -9,6 +9,7 @@ Post Issues
 1. Malformed Post - Basically must follow the database insert rules - unique, primary key, foreign key, datatypes, not null etc must be followed. 
 - Parent Post ID does not exist in the table.
 - Messaging queue id - unique and not already present in the database. It means this post was inserted but not acknowledged. 
+(check if thesse can be handled within the except of insert function to avoid multiple check) (if malfored post code can be used as a hash key and these can deleted from the queue and service unavailable key can be handled differently)
 
 2. URL - URL is malicious website 
 
