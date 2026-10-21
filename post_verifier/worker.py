@@ -2,7 +2,7 @@ import asyncio
 
 from domain.database_client import database_client
 from domain.post_verifier_messaging_queue_client import post_verifier_messaging_queue_client
-
+from domain.object_storage_client import object_storage_client
 
 
 
@@ -15,7 +15,7 @@ async def main() -> None:
 
         # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
         await post_verifier_messaging_queue_client.create_consumer_group()
-        print("Consumer group check Done.")
+        print(f"Consumer group check. Done: {post_verifier_messaging_queue_client.consumer_group}")
     
 
         while True:
@@ -23,12 +23,14 @@ async def main() -> None:
             try:
                 # Current get_next_post return order:
                 # (request_body_dict, user_id, message_id)
-                print("\n\n1. Post requested from messaging queue client.")
+                print("\n\n1. Post requested from messaging queue.")
                 
-                post = await post_verifier_consumer_group.get_next_pending_post() # immediat fetch, will return of nothing is available for now. 
+                post = await post_verifier_messaging_queue_client.get_next_pending_post() # immediate fetch, will return of nothing is available for now. 
 
                 if post is None:
-                    post = await post_verifier_messaging_queue_client.get_next_post()
+                    post = await post_verifier_messaging_queue_client.get_next_post()   # block until somethings is found (one issue is that it will stay here as long as new post are not added)
+                
+                    
 
                 request_body, user_id, message_id = post
                 print("2. Post received.", request_body, user_id, message_id)
@@ -37,7 +39,7 @@ async def main() -> None:
             except asyncio.CancelledError:
                 raise
 
-            
+
             except Exception:
                 # A failed fetch usually has no known message ID.
                 print("Error: Redis fetch failed; message_id=unknown")
@@ -56,7 +58,7 @@ async def main() -> None:
 
                 )
 
-                print("3. Database Insert. Done")
+                print(f"4. Database Inserted. message_id={message_id}")
 
 
             except asyncio.CancelledError:
@@ -77,13 +79,13 @@ async def main() -> None:
                     code = code[:2]
 
                     if not (code == '22' or code == '23'):
-                        print(f"3. Error: Post insert failed because service unavailable. message_id={message_id}")
+                        print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
                         continue 
 
-                    print(f"3. Error: Post insert failed because post malformed (not post media). message_id={message_id}")
+                    print(f"4. Error: Post insert failed because post malformed (not post media). message_id={message_id}")
 
                 except:
-                    print(f"3. Error: Post insert failed because service unavailable. message_id={message_id}")
+                    print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
                     continue 
 
 
@@ -91,11 +93,11 @@ async def main() -> None:
             try : 
                 # Acknowledge only after the database insert succeeds.
                 await post_verifier_messaging_queue_client.ack_del_post(message_id)
-                print("4. ack and delete for messaging queue done.")
+                print("5. ack and delete for messaging queue done.")
                 # if it fails then the same post be appended again, so to solve this make database insertion idempotent (by adding unique messaging queue column and that must be tested in verifier) or have a local storage for un ack message queue ids.
                 
             except Exception as e:
-                print("Error: redis ack and delete failed.")
+                print("5. Error: redis ack and delete failed.")
                 continue 
                 # these posts not be re inserted
 

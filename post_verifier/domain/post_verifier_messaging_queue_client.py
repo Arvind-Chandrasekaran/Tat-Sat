@@ -124,7 +124,7 @@ class PostVerifierMessagingQueueClient:
 
         """
         This will fetch one post in the pending list that has been in that list for at least 3 mins. 
-        Once fetched, if not ack and deleted, it will again be added to pending and 3 mins later it can be fetched. 
+        Once fetched, if not ack and deleted, it will again be added to pending and 3 mins later it can be fetched. (3 mins is assumed to be the time required to )
         It will always fetch from the start of pending list. 
 
         This can be made blocking it will always immediatly fetch in a second. Hence create a worker will start polling. 
