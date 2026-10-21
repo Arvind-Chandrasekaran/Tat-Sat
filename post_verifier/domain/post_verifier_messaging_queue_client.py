@@ -2,7 +2,6 @@ from redis.asyncio import Redis
 from redis.exceptions import ConnectionError, ResponseError, TimeoutError
 
 import json
-import logging
 import uuid
 import asyncio
 import os
@@ -10,7 +9,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-logger = logging.getLogger(__name__)
 
 
 class PostVerifierMessagingQueueClient:
@@ -120,6 +118,59 @@ class PostVerifierMessagingQueueClient:
 
 
 
+
+
+    async def get_next_pending_post(self, min_idle_ms: int = 180_000):
+
+        try:
+
+            result = await self._redis_client.xautoclaim(
+                name=self.stream_name,
+                groupname=self.consumer_group,
+                consumername=self.consumer_name,
+                min_idle_time=min_idle_ms,
+                start_id="0-0",
+                count=1,
+            )
+
+            # XAUTOCLAIM returns a cursor and claimed entries.
+            # Return None if there were no eligible entries.
+
+        except:
+            print("Pending Post Fetch error. ")
+            raise 
+
+
+        if not result or not result[1]:
+            return None
+
+        messages = result[1]
+        message_id, fields = messages[0]
+
+        
+        try:
+            payload = json.loads(fields["data"])
+            user_id = payload["user_id"]
+            request_body = payload["request_body"]
+
+            if not isinstance(user_id, str) or not isinstance(request_body, dict):
+                raise TypeError("Expected user_id string and request_body object")
+
+        except (KeyError, TypeError, json.JSONDecodeError) as exc:
+
+            raise ValueError(
+                f"Invalid payload in Redis stream entry {message_id}"
+            ) from exc
+
+        return request_body, user_id, message_id
+
+
+
+
+
+
+
+
     async def ack_del_post(self, message_id: str) -> None:
         """
         1. Acknowledges message in the consumer group (clears from PEL).
@@ -150,6 +201,10 @@ class PostVerifierMessagingQueueClient:
         except:
             print("redis client request error.")
             raise 
+        
+
+
+
 
 
 
