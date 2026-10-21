@@ -30,12 +30,13 @@ async def main() -> None:
                 if post is None:
                     post = await post_verifier_messaging_queue_client.get_next_post()
 
-
                 request_body, user_id, message_id = post
                 print("2. Post received.", request_body, user_id, message_id)
 
+
             except asyncio.CancelledError:
                 raise
+
             
             except Exception:
                 # A failed fetch usually has no known message ID.
