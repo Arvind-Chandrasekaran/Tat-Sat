@@ -14,8 +14,7 @@ env/
 __pycache__/
 *.py[cod]
 *$py.class
-
-
+.pytest_cache/
 
 
 
@@ -40,9 +39,9 @@ __pycache__/
 
 
 # ==========================================
-# Pytest runtime cache (NOT the config file)
+# trial file for code testing 
 # ==========================================
-.pytest_cache/
+trial.py
 
 
 
