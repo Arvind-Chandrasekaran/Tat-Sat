@@ -24,6 +24,7 @@ class MediaType(Enum):
     IMAGE = "image"
     VIDEO = "video"
     AUDIO = "audio"
+    UNKNOWN = "UNKNOWN"
 
 
 
@@ -44,12 +45,12 @@ class Post_RequestBody(BaseModel):
     # Optional: client can omit these entirely
     long_text : str | None = Field(default=None, max_length=10_000, min_length = 1)
     media_ids: list[str] = Field(default_factory=list, max_length=4)
-    media_types : list[MediaType] = Field(default_factory=list, max_length=4)
+    # media_types : list[MediaType] = Field(default_factory=list, max_length=4)  removed as this will needed to be verified by the post_verifier 
     external_link: HttpUrl | None = None
     parent_post_id: str | None = None
     post_user_visibility : PostUserVisibilityType = PostUserVisibilityType.PUBLIC    # default value is given still better to make it compulsory for this info to come in from client.  
 
-
+    """
     @model_validator(mode="after")
     def validate_media_lists(self):
 
@@ -57,4 +58,4 @@ class Post_RequestBody(BaseModel):
             raise ValueError("media_types length must match media_ids length")
 
         return self
-
+    """

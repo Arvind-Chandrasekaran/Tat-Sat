@@ -46,54 +46,65 @@ async def main() -> None:
                 continue
 
 
-            print(request_body, type(request_body))
-            print(message_id, type(message_id))
-            """
-            try:
-                object_storage_client.media_id_presence_check(,user_id)
-            """
+            print(request_body)
+            media_ids = request_body.get('media_ids', None)
+            media_ids_check = True
+
+            if media_ids:
+        
+                try:
+                    await object_storage_client.media_id_presence_check(media_ids,user_id)
+
+                
+                except Exception as e:
+                    print(f"Media id presence check failed {e}")
+                    media_ids_check = False
+
+                    
      
-
-
-            try:
-
-                await database_client.insert(
-                    request_body=request_body,
-                    user_id=user_id,
-                    messaging_queue_name=str(post_verifier_messaging_queue_client.stream_name),
-                    messaging_queue_post_id=str(message_id)
-
-                )
-
-                print(f"4. Database Inserted. message_id={message_id}")
-
-
-            except asyncio.CancelledError:
-                raise
-
-            except Exception as e:
-                """
-                2 reasons to why the database insertion could have failed 
-                    1. Database Service unavailable 
-                        In this you must continue as the post should be ack or deleted. 
-                    2. Post is malformed (reasons mentioned in the readme.md first type)
-                        In these cases the posts can be ack and deleted so no continue. 
-                        Error types 22xx and 23xx
-                """
+            if media_ids_check:
 
                 try:
-                    code = getattr(e, "code")
-                    code = code[:2]
 
-                    if not (code == '22' or code == '23'):
+                    await database_client.insert(
+                        request_body=request_body,
+                        user_id=user_id,
+                        messaging_queue_name=str(post_verifier_messaging_queue_client.stream_name),
+                        messaging_queue_post_id=str(message_id)
+
+                    )
+
+                    print(f"4. Database Inserted. message_id={message_id}")
+
+
+                except asyncio.CancelledError:
+                    raise
+
+                except Exception as e:
+                    """
+                    2 reasons to why the database insertion could have failed 
+                        1. Database Service unavailable 
+                            In this you must continue as the post should be ack or deleted. 
+                        2. Post is malformed (reasons mentioned in the readme.md first type)
+                            In these cases the posts can be ack and deleted so no continue. 
+                            Error types 22xx and 23xx
+                    """
+
+                    try:
+                        code = getattr(e, "code")
+                        code = code[:2]
+
+                        if not (code == '22' or code == '23'):
+                            print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
+                            continue 
+
+                        print(f"4. Error: Post insert failed because post malformed (not post media). message_id={message_id}")
+
+                    except:
                         print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
                         continue 
 
-                    print(f"4. Error: Post insert failed because post malformed (not post media). message_id={message_id}")
 
-                except:
-                    print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
-                    continue 
 
 
 

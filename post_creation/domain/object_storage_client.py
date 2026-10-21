@@ -82,10 +82,7 @@ class ObjectStorageClient:
                 missing_paths = set(expected_paths) - found_paths
                 if missing_paths:
                         missing_ids = [path.split("/", 1)[1] for path in missing_paths]
-                        raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Invalid media ID(s): {', '.join(missing_ids)}",
-                        )
+                        raise Exception
 
 
 
