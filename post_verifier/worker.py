@@ -57,7 +57,7 @@ async def main() -> None:
 
                 
                 except Exception as e:
-                    print(f"Media id presence check failed {e}")
+                    print(f"3. Error: Media id presence check failed {e}")
                     media_ids_check = False
 
                     

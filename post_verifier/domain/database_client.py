@@ -18,7 +18,6 @@ class DatabaseClient:
 		├── text
 		├── long_text
 		├── media_ids 
-		├── media_types
 		├── external_link
 		├── parent_id - fk application.posts.id
 		├── created_at
@@ -77,7 +76,7 @@ class DatabaseClient:
 
 
 
-	async def _insert_post_media(self, post_id: str, media_ids: list[str], media_types: list[str], user_id: str):
+	async def _insert_post_media(self, post_id: str, media_ids: list[str], user_id: str):
 
 		try :
 			if not media_ids:
@@ -86,12 +85,11 @@ class DatabaseClient:
 			post_media_rows = [
 				{
 					"post_id": post_id,
-					"media_type": media_type.value,
 					"storage_path": f"{user_id}/{media_id}",
 					"display_order": index+1,
-					"post_media_status": "pending",
+					"post_media_status": "active",  # if media is present in the object storage then its file type must be approved so we can write approved here. 
 				}
-				for index, (media_id, media_type) in enumerate(zip(media_ids, media_types))
+				for index, media_id in enumerate(media_ids)
 			]
 
 			response = await (
@@ -123,7 +121,6 @@ class DatabaseClient:
 			await self._insert_post_media(
 				post_id,
 				request_body.media_ids,
-				request_body.media_types,
 				user_id,
 			)
 
