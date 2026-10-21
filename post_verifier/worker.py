@@ -49,7 +49,7 @@ async def main() -> None:
                     request_body=request_body,
                     user_id=user_id,
                     messaging_queue_name=str(post_verifier_messaging_queue_client.stream_name),
-                    messaging_queue_post_id="str(message_id)"
+                    messaging_queue_post_id=str(message_id)
 
                 )
 
@@ -61,7 +61,15 @@ async def main() -> None:
 
             except Exception as e:
                 print(f"Post insert failed, could be because post is malformed or service unavailable; message_id={message_id}")
-                # make sure to have malformed post check better in verifier step so that here only service unavailable ones come.
+                """
+                2 reasons to why the database insertion could have failed 
+                    1. Database Service unavailable 
+                        In this you must continue as the post should be ack or deleted. 
+                    2. Post is malformed (reasons mentioned in the readme.md first type)
+                        In these cases the posts can be ack and deleted so no continue. 
+                        Error types 22xx and 23xx
+                """
+                
                 continue
 
             try : 
