@@ -45,6 +45,13 @@ async def main() -> None:
                 print("Error: Redis fetch failed; message_id=unknown")
                 continue
 
+
+            print(request_body, type(request_body))
+            print(message_id, type(message_id))
+            """
+            try:
+                object_storage_client.media_id_presence_check(,user_id)
+            """
      
 
 
