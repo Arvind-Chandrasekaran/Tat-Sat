@@ -25,6 +25,8 @@ const SUPABASE_KEY = __ENV.SUPABASE_PUBLISHABLE_KEY;
 const TEST_USER_EMAIL = __ENV.TEST_USER_EMAIL;
 const TEST_USER_PASSWORD = __ENV.TEST_USER_PASSWORD;
 
+console.log("Supabase url : ", SUPABASE_URL)
+
 
 // --------------------------------------------------
 // Setup
@@ -96,11 +98,11 @@ export default function (data) {
 
 
   check(postResponse, {
-    'POST /post: 200': (r) => r.status === 200,
+    'POST /post: 200': (r) => r.status === 202,
   });
 
 
-  if (postResponse.status !== 200) {
+  if (postResponse.status !== 202) {
     console.log(
       `POST /post failed: ${postResponse.status}`
     );

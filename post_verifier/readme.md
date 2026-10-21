@@ -14,6 +14,7 @@ Post Issues
 2. URL - URL is malicious website 
 
 
+
 Media Issues 
 1. Phantom  Media - Media ids sent by the client could be present within the clients media storage. It could never have been uploaded, or client is asking for another user's media.
 2. Malicious Media: when file of unknown media type gets uploaded instead of approved an media type to the media object storage. 
