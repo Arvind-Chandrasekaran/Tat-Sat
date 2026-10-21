@@ -1,0 +1,1 @@
+# Cover the post media checks mentioned in readme.md. Will done before database insertion step 3. 
