@@ -24,7 +24,11 @@ async def main() -> None:
                 # Current get_next_post return order:
                 # (request_body_dict, user_id, message_id)
                 print("\n\n1. Post requested from messaging queue client.")
-                post = await post_verifier_messaging_queue_client.get_next_post()
+                
+                post = await post_verifier_consumer_group.get_next_pending_post() # immediat fetch, will return of nothing is available for now. 
+
+                if post is None:
+                    post = await post_verifier_messaging_queue_client.get_next_post()
 
 
                 request_body, user_id, message_id = post
