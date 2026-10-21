@@ -122,6 +122,11 @@ class PostVerifierMessagingQueueClient:
 
     async def get_next_pending_post(self, min_idle_ms: int = 180_000):
 
+        """
+        This will fetch one post in the pending list that has been in that list for at least 3 mins. 
+        Once fetched, if not ack and deleted, it will again be added to pending and 3 mins later it can be fetched. 
+        """
+
         try:
 
             result = await self._redis_client.xautoclaim(
