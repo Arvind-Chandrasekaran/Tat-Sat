@@ -16,7 +16,7 @@ async def main() -> None:
             # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
             await post_verifier_messaging_queue_client.create_consumer_group()
             print(f"Consumer group check. Done: {post_verifier_messaging_queue_client.consumer_group}")
-    
+
 
         # while True:
 
@@ -43,7 +43,7 @@ async def main() -> None:
             except Exception:
                 # A failed fetch usually has no known message ID.
                 print("Error: Redis fetch failed; message_id=unknown")
-                continue
+                # continue
 
 
             print(request_body)
@@ -96,13 +96,13 @@ async def main() -> None:
 
                         if not (code == '22' or code == '23'):
                             print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
-                            continue 
+                            # continue 
 
                         print(f"4. Error: Post insert failed because post malformed (not post media). message_id={message_id}")
 
                     except:
                         print(f"4. Error: Post insert failed because service unavailable. message_id={message_id}")
-                        continue 
+                        # continue 
 
 
 
@@ -116,7 +116,7 @@ async def main() -> None:
                 
             except Exception as e:
                 print("5. Error: redis ack and delete failed.")
-                continue 
+                # continue 
                 # these posts not be re inserted
 
 
