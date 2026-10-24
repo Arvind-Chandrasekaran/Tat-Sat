@@ -3,7 +3,7 @@ from network.router import router
 import uvicorn
 
 app = FastAPI(
-        title="Post Creation Service",
+        title="Post Creation",
         docs_url="/api-reference")
         
 app.include_router(router)
