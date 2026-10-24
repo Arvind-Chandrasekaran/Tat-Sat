@@ -11,14 +11,14 @@ async def main() -> None:
 
     try:
 
-        print("Worked Started : ", post_verifier_messaging_queue_client.consumer_name)
+            print("Worked Started : ", post_verifier_messaging_queue_client.consumer_name)
 
-        # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
-        await post_verifier_messaging_queue_client.create_consumer_group()
-        print(f"Consumer group check. Done: {post_verifier_messaging_queue_client.consumer_group}")
+            # Consumer Group Created in the event loop as the create consumer_group is async method and it being done outside of the main eventloop will cause error for subsequent calls. Unlike supabase httpx client that is meant to handle it. 
+            await post_verifier_messaging_queue_client.create_consumer_group()
+            print(f"Consumer group check. Done: {post_verifier_messaging_queue_client.consumer_group}")
     
 
-        while True:
+        # while True:
 
             try:
                 # Current get_next_post return order:
