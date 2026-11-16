@@ -51,7 +51,7 @@ auth/credentials.json
 # trial file for code testing 
 # ==========================================
 trial.py
-
+trial/
 
 
 
