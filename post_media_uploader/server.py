@@ -3,7 +3,7 @@ from network.router import router
 import uvicorn
 
 app = FastAPI(
-        title="Post Media Creation",
+        title="Post Media Uploader",
         docs_url="/api-reference")
         
 app.include_router(router)

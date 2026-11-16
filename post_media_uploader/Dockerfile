@@ -1,6 +1,6 @@
 FROM python:3.14-slim
 
-WORKDIR /post_creation
+WORKDIR /post_media_uploader
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
